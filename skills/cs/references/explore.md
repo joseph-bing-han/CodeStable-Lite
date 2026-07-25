@@ -35,7 +35,7 @@
 | | 现状说明 | Explore issue |
 |---|---|---|
 | 何时 | 相关路径能用紧凑叙事讲清 | 讲不清、跨多边界、证据冲突、需多篇路径文、或理解将被多处复用 |
-| 写哪 | 对话 / 目标 issue 的 `## 现状如何工作`（及有变化时的 `## 影响范围`） | `.cs/issues/{NNN}-o-{名称}/` |
+| 写哪 | 对话 / 目标 issue 的 `## 现状如何工作`（及有变化时的 `## 影响范围`） | `codestable/issues/{NNN}-o-{名称}/` |
 | 关闭 | 随目标 issue 或直接进入 Design / Do | 用户确认后 Close：稳定现状机制说明毕业到 Project Spec |
 
 ## 行动指南
@@ -79,7 +79,7 @@
 
 ### Explore issue
 
-路径：`.cs/issues/{NNN}-o-{名称}/`，入口 `index.md`（`templates/entities/explore-index.md`），路径文章用 `explore-article.md`。关闭时目录改为 `{NNN}-x-{名称}/`。`NNN` 取 issues 下最大序号 + 1。
+路径：`codestable/issues/{NNN}-o-{名称}/`，入口 `index.md`（`templates/entities/explore-index.md`），路径文章用 `explore-article.md`。关闭时目录改为 `{NNN}-x-{名称}/`。`NNN` 取 issues 下最大序号 + 1。
 
 `index.md` 是认知地图：探索问题与停止条件、一句话模型、边界、阅读路径、当前结论、与具体变化的关系、用户修正、未知、候选毕业位置。路径文章按“某触发如何产生结果”组织，不按调查轮次或代码目录。
 

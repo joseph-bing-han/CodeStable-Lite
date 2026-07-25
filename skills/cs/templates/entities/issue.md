@@ -32,8 +32,8 @@ type: feature | bug | chore | refactor
 ## 归属
 
 - 独立 issue / 隶属 epic：
-- 来源 Vision（按需）：`.cs/vision/...`
-- 相关 spec：`.cs/spec/...` 或 `.cs/epics/{NNN}-o|x-{名称}/spec.md`
+- 来源 Vision（按需）：`codestable/vision/...`
+- 相关 spec：`codestable/spec/...` 或 `codestable/epics/{NNN}-o|x-{名称}/spec.md`
 
 ## 背景与证据
 

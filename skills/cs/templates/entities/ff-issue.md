@@ -24,11 +24,11 @@ epic: ""
 
 [1-2 句：跑了哪些检查 / 手测哪条路径]
 
-## 对 .cs/ 的影响
+## 对 codestable/ 的影响
 
 - 选择其一并写清：
   - 无已记录真相受影响（为何）
-  - 已同步 project spec：`.cs/spec/...`
+  - 已同步 project spec：`codestable/spec/...`
   - 未改 spec，已知漂移：{一句}；待用户确认是否写入
   - 应升级完整流程：{原因}
 

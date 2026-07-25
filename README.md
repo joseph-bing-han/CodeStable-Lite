@@ -24,13 +24,13 @@
 使用 Skills CLI 安装：
 
 ```bash
-npx skills add liuzhengdongfortest/CodeStable
+npx skills add codestable/CodeStable-Lite
 ```
 
 默认安装到当前项目；希望所有项目都能使用时加 `-g`：
 
 ```bash
-npx skills add liuzhengdongfortest/CodeStable -g
+npx skills add codestable/CodeStable-Lite -g
 ```
 
 本地开发时，在仓库根目录验证安装发现：
@@ -93,7 +93,7 @@ CodeStable 走的是**另一个方向**：
 <tr><th></th><th>Agent 编排派</th><th>CodeStable</th></tr>
 <tr><td><b>核心实体</b></td><td>Agent / Role / Team</td><td>vision spec · project spec · epic spec · issues</td></tr>
 <tr><td><b>主线问题</b></td><td>Agent 之间怎么分工、传递、协调？</td><td>软件的目标世界、当前真相、变更线和可关闭事项怎么被组织、推进、沉淀？</td></tr>
-<tr><td><b>状态存在哪</b></td><td>Agent 的 session / 消息总线 / 队列</td><td><code>.cs/</code> 文件树（人和 AI 都能读）</td></tr>
+<tr><td><b>状态存在哪</b></td><td>Agent 的 session / 消息总线 / 队列</td><td><code>codestable/</code> 文件树（人和 AI 都能读）</td></tr>
 <tr><td><b>解决的痛点</b></td><td>单 Agent 能力不够，需要协同放大</td><td>软件复杂度膨胀撑破上下文、隐知识丢失、需求漂移</td></tr>
 <tr><td><b>对人的定位</b></td><td>人少介入越好，理想是全自动</td><td>人在环 —— 程序员对整体把控负责，AI 是高效的执行体</td></tr>
 </table>
@@ -117,19 +117,19 @@ CodeStable 的核心是四种信息责任：目标应用全景、项目当前真
 
 ### vision spec —— 目标中的应用世界
 
-vision spec 放在 `.cs/vision/`。它帮助个人开发者把脑内产品世界逐渐外化：用户最终怎样获得结果、应用由哪些能力区域组成、有哪些奇思妙想、候选方向和互斥方案，以及哪些部分已规划、建设或成为现实。
+vision spec 放在 `codestable/vision/`。它帮助个人开发者把脑内产品世界逐渐外化：用户最终怎样获得结果、应用由哪些能力区域组成、有哪些奇思妙想、候选方向和互斥方案，以及哪些部分已规划、建设或成为现实。
 
 Vision 是一棵可递归展开的产品地图。每层 `index.md` 以用户旅程为主阅读路径、能力版图为辅助视角；AI 不只转录用户原话，还负责帮助定位、分层、建立关联并指出冲突。Vision 不是 roadmap 或任务面板，详细进度仍留在 Epic / Issue。
 
 ### project spec —— 项目主线真相
 
-project spec 放在 `.cs/spec/`。它面向第一次进入项目的开发者：这个项目当前是什么、已有能力和边界怎样成立、架构怎么细化、统一语言在哪里。目标未来属于 Vision；Project Spec 只写当前稳定真相。
+project spec 放在 `codestable/spec/`。它面向第一次进入项目的开发者：这个项目当前是什么、已有能力和边界怎样成立、架构怎么细化、统一语言在哪里。目标未来属于 Vision；Project Spec 只写当前稳定真相。
 
 统一语言放在离它生效范围最近的入口文档里，不另起一套 domain 目录。spec 不记流水账，只写当前为什么这样设计、哪些边界成立、哪些取舍被确认。
 
 ### epic spec —— 有边界的活规格
 
-大需求放在 `.cs/epics/YYYY/MM/DD/{短语}/spec.md`。Epic 可以从 Vision 摘取一段目标，也可以直接来自当前问题；这个 `spec.md` 是唯一权威入口，同时承载状态、当前规格、架构考量、直接切片与 issue 链接、阻碍、关闭条件和毕业候选。
+大需求放在 `codestable/epics/{NNN}-o-{名称}/spec.md`；关闭后目录改为 `{NNN}-x-{名称}/`。Epic 可以从 Vision 摘取一段目标，也可以直接来自当前问题；这个 `spec.md` 是唯一权威入口，同时承载状态、当前规格、架构考量、直接切片与 issue 链接、阻碍、关闭条件和毕业候选。
 
 Epic 不是计划容器，也不是 project spec 的缩小版。它是一条有边界的演进线：大到值得 review 架构决策和关键抽象，小到能在合理时间内多轮反馈。跨模块、会多轮变化、需要分批推进或规格还会持续微变的需求，才需要 epic；小而明确的改变按管理价值选择直接实现或独立 issue。
 
@@ -191,8 +191,8 @@ CodeStable 把“少写代码”收紧成**最小充分变化**：先理解触�
 
 | 意图 | `cs` 内部行为 |
 |---|---|
-| 首次接入 | 创建或补齐 `.cs/` 骨架，不擅自迁移旧需求 |
-| 构想整个应用 | 帮用户把脑内世界整理成 `.cs/vision/` 中可导航的产品地图，不强迫立即开发 |
+| 首次接入 | 创建或补齐 `codestable/` 骨架，不擅自迁移旧需求 |
+| 构想整个应用 | 帮用户把脑内世界整理成 `codestable/vision/` 中可导航的产品地图，不强迫立即开发 |
 | 局部想法模糊、需要规划 | 调查上下文、澄清真问题，确认后直接改变、更新 Vision、形成 issue / epic，或继续探索 |
 | 规格变化 | 维护 project spec 或唯一的 epic `spec.md` |
 | 行为不符合预期 | 用反馈回路诊断、修复和验证；简单 bug 可直接闭环，需要追踪时建 issue |
@@ -229,11 +229,13 @@ Vision Spec ──摘取目标切片──> Epic Spec ──按需分批──> 
 
 ## 运行时结构
 
-让 `/cs` 接入项目后，会在项目根生成 `.cs/`——规格、事项和知识产物的聚合根，也是统一技能运行时读写的工作区。
+让 `/cs` 接入项目后，会在项目根生成 `codestable/`——规格、事项和知识产物的聚合根，也是统一技能运行时读写的工作区。
+
+旧版 `.cs/` 工作区不会被静默复制成第二套目录。确认迁移后运行 `python skills/cs/scripts/init_codestable.py --migrate-legacy`；若 `.cs/` 和 `codestable/` 同时存在，先人工整理再初始化。
 
 ```
 你的项目/
-├── .cs/
+├── codestable/
 │   ├── talks/                # 讨论整理（确认后才落盘）
 │   │   └── YYYY/MM/DD/{短语}.md
 │   ├── vision/               # vision spec：目标应用全景
@@ -260,7 +262,7 @@ Vision Spec ──摘取目标切片──> Epic Spec ──按需分批──> 
 
 **几条要点：**
 
-- 规格、事项和知识产物聚在 `.cs/` 下，"上次那个变更当时怎么搞的"三秒能找到
+- 规格、事项和知识产物聚在 `codestable/` 下，"上次那个变更当时怎么搞的"三秒能找到
 - `vision/` 保存目标应用全景、候选与互斥方向；AI 帮助用户整理地图，用户确认后写入
 - `spec/` 是 project spec，面向第一次进入项目的开发者组织主线需求、架构考量、统一语言和阅读路径
 - `epics/` 是大需求活规格边界；关闭后合并 project spec，并检查来源 Vision 的实现状态和链接
@@ -271,18 +273,18 @@ Vision Spec ──摘取目标切片──> Epic Spec ──按需分批──> 
 - talks / notes 默认写入 `YYYY/MM/DD/{短语}.md` 日期分片，epics 写入 `YYYY/MM/DD/{短语}/` 工作区，普通 issues 写入 `YYYY/MM/DD/{status}-{短语}.md`，探索型 issue 写入 `YYYY/MM/DD/{status}-{短语}/` 工作区；查找时递归搜索对应目录
 - `notes/` 是知识笔记，纯 markdown 无 frontmatter，靠全文检索——好写好搜；日常“记下来”由 `cs` 判断写 notes 还是项目 Agent 指令
 - 用户带路跑通的未知流程写入 `notes/`；只有它是相关工作开始前的稳定前置时，才在 `AGENTS.md` 或 `CLAUDE.md` 加一行引用，必要时再沉淀到 `tools/`
-- Agent 框架会自行注入项目根的指令文件，`cs` 不主动读取或把它们纳入 `.cs/` 结构；跨 Agent 的短规则优先写已有 `AGENTS.md`，只对 Claude 生效的规则写 `CLAUDE.md`
+- Agent 框架会自行注入项目根的指令文件，`cs` 不主动读取或把它们纳入 `codestable/` 结构；跨 Agent 的短规则优先写已有 `AGENTS.md`，只对 Claude 生效的规则写 `CLAUDE.md`
 - Markdown 应当适当精简，但不设统一行数上限；核心结构、背景、原则和契约要完整留在主叙事中，只把特定场景才需要或妨碍阅读的细节按渐进式披露拆到同目录资源
 
 ### 硬约束
 
 > CodeStable 只有一个 `cs` 安装单元。它的核心结构和共同边界写在 `SKILL.md`，场景化行动规则与原则放在同一技能的 `references/`，模板和脚本也必须留在同一技能包内。
 >
-> `SKILL.md` 必须明确说明何时读取每个 reference，不能把核心契约藏起来，也不能一次加载所有场景材料。目标应用全景进入 `.cs/vision/`，项目稳定真相进入 `.cs/spec/`，可复用知识进入 `.cs/notes/`，启动必读短规则直接进入项目 `AGENTS.md` 或 `CLAUDE.md`。
+> `SKILL.md` 必须明确说明何时读取每个 reference，不能把核心契约藏起来，也不能一次加载所有场景材料。目标应用全景进入 `codestable/vision/`，项目稳定真相进入 `codestable/spec/`，可复用知识进入 `codestable/notes/`，启动必读短规则直接进入项目 `AGENTS.md` 或 `CLAUDE.md`。
 
 `cs` 先判断用户此刻是在提问、构想、讨论还是要求行动，再选择内部模式。已掌握且没有变化迹象的 vision、project spec、epic spec 或目标 issue 不机械重读；目标文件在写入前必须确认当前版本。
 
-要改体系口径，同步更新 `cs/SKILL.md`、相关 reference 和模板；项目自己的稳定需求和操作经验，放回 `.cs/` 对应实体。
+要改体系口径，同步更新 `cs/SKILL.md`、相关 reference 和模板；项目自己的稳定需求和操作经验，放回 `codestable/` 对应实体。
 
 ---
 
@@ -314,7 +316,7 @@ CodeStable 会根据模型能力的发展进行调整。如果未来某个模型
 ---
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=liuzhengdongfortest/CodeStable&type=date&legend=top-left)](https://www.star-history.com/?repos=liuzhengdongfortest%2FCodeStable&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/chart?repos=codestable/CodeStable-Lite&type=date&legend=top-left)](https://www.star-history.com/?repos=codestable%2FCodeStable-Lite&type=date&legend=top-left)
 
 <div align="center">
 

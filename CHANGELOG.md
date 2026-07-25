@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Added Vision Spec as a fourth core information responsibility under `.cs/vision/`, with user-journey-led recursive maps, candidate and mutually exclusive directions, lightweight realization state, and explicit extraction into development slices.
+- Moved the project workspace from the hidden `.cs/` directory to `codestable/`, so common tooling can discover its specifications, work items, and knowledge artifacts without special configuration.
+- Added Vision Spec as a fourth core information responsibility under `codestable/vision/`, with user-journey-led recursive maps, candidate and mutually exclusive directions, lightweight realization state, and explicit extraction into development slices.
 - Added an adaptive Vision action mode: AI helps individual developers organize their product world without forcing every idea into an Epic or Issue.
 - Made Issues optional when ongoing management adds value; direct, clear changes and simple bug fixes can now be implemented and verified without creating work-item ceremony.
 - Updated Talk, Spec, Complain, Do, Close, quality guidance, templates, initialization, skill metadata, and bilingual documentation to keep Vision, current truth, bounded change, and direct action responsibilities consistent.
@@ -26,15 +27,15 @@
 
 ## 0.4.0
 
-- Removed `.cs/facts.md` from the CodeStable entity model, initialization script, templates, and documentation.
-- Moved short startup-critical rules to an existing project `AGENTS.md` or `CLAUDE.md`; reusable background and procedures remain in `.cs/notes/`.
+- Removed `codestable/facts.md` from the CodeStable entity model, initialization script, templates, and documentation.
+- Moved short startup-critical rules to an existing project `AGENTS.md` or `CLAUDE.md`; reusable background and procedures remain in `codestable/notes/`.
 - Relied on agent frameworks to inject `AGENTS.md` / `CLAUDE.md`; CodeStable modes no longer model or proactively read them.
-- Added a safe legacy rule: migrate old facts by value and never delete an existing `.cs/facts.md` without explicit confirmation.
+- Added a safe legacy rule: migrate old facts by value and never delete an existing `codestable/facts.md` without explicit confirmation.
 
 ## 0.3.0
 
 - Replaced Codex and Claude plugin packaging with the standard `skills/cs/` repository layout.
-- Made `npx skills add liuzhengdongfortest/CodeStable` the single installation path.
+- Made `npx skills add codestable/CodeStable-Lite` the single installation path.
 - Removed marketplace manifests and plugin-specific validation.
 - Replaced the plugin package checker with a single-Skill repository checker and local Skills CLI discovery test.
 

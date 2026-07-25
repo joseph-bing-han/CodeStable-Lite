@@ -1,20 +1,24 @@
 ---
 name: cs
 description: >
-  CodeStable：一套软件演化理解（Vision/Project Spec/Epic/Issue + .cs/ 制度记忆），按用户当前姿态行动——讨论、快改、受管理实现、修 bug、整理愿景/规格、现状理解、关闭收尾、按需 review。
-  触发：cs、CodeStable、讨论/先聊清楚、快速/快改/直接开干、穿刺、修 bug/debug、整理 vision/spec、关闭/收尾、review、这系统怎么工作、项目已有 .cs/ 且在处理愿景规格 bug 实现关闭时。
-  调用 cs 不等于跑完整流程：先判姿态再行动。仅用户明确要求时才初始化 .cs/。
+  CodeStable：一套软件演化理解（Vision/Project Spec/Epic/Issue + codestable/ 制度记忆），按用户当前姿态行动——讨论、快改、受管理实现、修 bug、整理愿景/规格、现状理解、关闭收尾、按需 review。
+  触发：cs、CodeStable、讨论/先聊清楚、快速/快改/直接开干、穿刺、修 bug/debug、整理 vision/spec、关闭/收尾、review、这系统怎么工作、项目已有 codestable/ 且在处理愿景规格 bug 实现关闭时。
+  调用 cs 不等于跑完整流程：先判姿态再行动。仅用户明确要求时才初始化 codestable/。
 ---
 
 # cs — CodeStable
 
 CodeStable 是**软件演化的理解方式**，不是强制流水线，也不是 Agent 编排器。
 
-- **理解（世界模型）**：目标世界 / 当前真相 / 有界大变化 / 可关闭行动，记在 `.cs/`
+- **理解（世界模型）**：目标世界 / 当前真相 / 有界大变化 / 可关闭行动，记在 `codestable/`
 - **姿态（用户此刻要什么）**：讨论、快交付、受管理推进、修坏的、维护规格……
 - **手法**：现状说明、穿刺、Review——挂在姿态里，不单独占入口
 
 **调用本技能 ≠ 跑完整生命周期。** 先定姿态，再只读该姿态需要的 reference；同一会话可换姿态，**不必**向用户宣布“进入某模式”。
+
+### 节省上下文（Codex）
+
+同一会话中，已经完整读取且没有被改动的 `SKILL.md`、reference、template 或相邻说明，**必须复用既有理解，不要重复读取**。只有用户明确要求重读、文件在本会话中被改动，或现有理解不足以支撑当前判断时，才读取相关最小范围。
 
 ---
 
@@ -24,7 +28,7 @@ CodeStable 是**软件演化的理解方式**，不是强制流水线，也不�
 
 | 姿态 | 用户常这样说 | 必读 | 同时读（有需要才） | 默认边界 |
 |---|---|---|---|---|
-| **接入** | 初始化 cs、接入 CodeStable、补齐 `.cs/` | [onboard](references/onboard.md) | — | 须明确授权；不编造业务内容 |
+| **接入** | 初始化 cs、接入 CodeStable、补齐 `codestable/` | [onboard](references/onboard.md) | — | 须明确授权；不编造业务内容 |
 | **讨论** | 聊聊、先理清、想清楚再做、帮我规划一下 | [talk](references/talk.md) | [docs](references/docs.md)；具体变化 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 确认前不落盘、不建 issue/epic/vision |
 | **愿景** | 应用将来什么样、整理 vision、产品全景 | [vision](references/vision.md) | [docs](references/docs.md)；质量方向 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 确认后才写 vision；不强迫开开发事项 |
 | **规格** | 维护 spec、当前真相、epic 活规格 | [spec](references/spec.md) | [docs](references/docs.md)；质量约束 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 只写仍成立的结论 |
@@ -73,12 +77,12 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
 
 | 实体 | 路径 | 回答什么 |
 |---|---|---|
-| **Vision** | `.cs/vision/` | 应用最终什么样、旅程与能力、候选/互斥方向 |
-| **Project Spec** | `.cs/spec/` | 现在仍然成立的项目真相（按场景/能力，不按代码目录） |
-| **Epic** | `.cs/epics/{NNN}-o\|x-{名}/spec.md` | 有界大变化：已定/仍变、可推进什么（活规格） |
-| **Issue** | `.cs/issues/{NNN}-o\|x-[{ff}-]{名}.md` 或 Explore 目录 | 可关闭行动；快改用 `ff` |
+| **Vision** | `codestable/vision/` | 应用最终什么样、旅程与能力、候选/互斥方向 |
+| **Project Spec** | `codestable/spec/` | 现在仍然成立的项目真相（按场景/能力，不按代码目录） |
+| **Epic** | `codestable/epics/{NNN}-o\|x-{名}/spec.md` | 有界大变化：已定/仍变、可推进什么（活规格） |
+| **Issue** | `codestable/issues/{NNN}-o\|x-[{ff}-]{名}.md` 或 Explore 目录 | 可关闭行动；快改用 `ff` |
 
-**为何分层：** 只靠 issue 会丢方向；只靠当前 spec 安放不了互斥构想；全塞进 project spec 分不清“现在”和“以后”；巨型 issue 关不掉。只把**值得跨会话**的信息写入 `.cs/`。
+**为何分层：** 只靠 issue 会丢方向；只靠当前 spec 安放不了互斥构想；全塞进 project spec 分不清“现在”和“以后”；巨型 issue 关不掉。只把**值得跨会话**的信息写入 `codestable/`。
 
 ### 命名与序号（契约）
 
@@ -95,8 +99,8 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
 
 - 关闭：路径 `-o-` → `-x-`，序号与名称不变；`status: closed`。
 - 常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
-- **ff** 只四节：做了什么 / 改了哪些 / 怎么验证 / 对 `.cs/` 的影响；禁止迷你 Design。
-- Talk：`.cs/talks/`；Note：`.cs/notes/`（同主题改原文件）；Tool：`.cs/tools/`。
+- **ff** 只四节：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design。
+- Talk：`codestable/talks/`；Note：`codestable/notes/`（同主题改原文件）；Tool：`codestable/tools/`。
 - 启动短规则只进会注入的 `AGENTS.md` 或 `CLAUDE.md`（不两处重复）。**不建 `facts.md`。**
 
 ### 谁可以写哪一层
@@ -125,7 +129,7 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
 | 受管理实现 | 完成即可；**不**自动关闭 issue；不 commit/push |
 | 用户说做完/修好 | 完成验证；小改仍落 `ff`（除非不要痕迹）；常规 issue 不自动关 |
 | 用户说关闭/收尾 | [close](references/close.md)；不自动进 `done/` |
-| push / 部署 / 初始化或覆盖 `.cs/` / 关 epic / 破坏性操作 | **必须**明确授权 |
+| push / 部署 / 初始化或覆盖 `codestable/` / 关 epic / 破坏性操作 | **必须**明确授权 |
 
 毕业摘要：独立 issue → project spec；epic 内 issue → epic spec；Epic 关闭 → project spec 并检查 Vision；ff 默认不大段毕业，真相失效则同步或标漂移。细则 [close](references/close.md)。
 
@@ -137,9 +141,9 @@ ISO/IEC 25010:2023 九特征作统一语言，**不是**九项必填表。**选�
 
 ## 3. 开工协议
 
-在**设计、实现、快改、修 bug、维护规格、穿刺**前，若项目有 `.cs/`，先做本协议（各 reference 不重复展开）：
+在**设计、实现、快改、修 bug、维护规格、穿刺**前，若项目有 `codestable/`，先做本协议（各 reference 不重复展开）：
 
-1. **扫 `.cs/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
+1. **扫 `codestable/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
 2. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
 3. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → Explore issue。
 4. **管理强度**：见上文表。
@@ -147,7 +151,7 @@ ISO/IEC 25010:2023 九特征作统一语言，**不是**九项必填表。**选�
 
 有目标 issue 时确认**当前版本**；epic 下工作读对应 `spec.md`。
 
-**`.cs/` 是制度记忆**：怪代码先查 spec；踩坑先查 notes；历史取舍先查 issue。
+**`codestable/` 是制度记忆**：怪代码先查 spec；踩坑先查 notes；历史取舍先查 issue。
 
 ---
 
@@ -156,7 +160,7 @@ ISO/IEC 25010:2023 九特征作统一语言，**不是**九项必填表。**选�
 - 方向已确认且用户要求执行 → 推进到**完成**或真阻塞；不在正常步骤间反复确认。
 - 确认前：讨论不落盘；设计不写代码。
 - 完成 ≠ 关闭；关闭 ≠ `done/`；实现/快改后**不**自动 Review、**不**自动 push。
-- 初始化 `.cs/`、覆盖入口、关 epic、危险操作、推送、部署：须明确授权。
+- 初始化 `codestable/`、覆盖入口、关 epic、危险操作、推送、部署：须明确授权。
 
 ---
 

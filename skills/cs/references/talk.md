@@ -8,7 +8,7 @@
 
 先看清是什么，再让用户看见他看不见的，最后收住边界、终点与出口。
 
-**先讨论，再落盘。** 不边聊边维护整理稿。阶段性复述让用户纠正；仅当用户明确说“差不多了 / 整理一下 / 落盘 / 写个 talk”后写入 `.cs/talks/`。
+**先讨论，再落盘。** 不边聊边维护整理稿。阶段性复述让用户纠正；仅当用户明确说“差不多了 / 整理一下 / 落盘 / 写个 talk”后写入 `codestable/talks/`。
 
 **能查先查，不明白再问。** 不把猜测当需求或事实。偏好可商量，约束不能绕过；稳定约束最终进 project / epic spec。
 
@@ -26,7 +26,7 @@
 
 ## 行动指南
 
-复用已掌握上下文；项目有 `.cs/` 时先跑 `SKILL.md` 开工协议（主题检索）。想法来自 Vision 或落在已有 epic 时深读对应分支。
+复用已掌握上下文；项目有 `codestable/` 时先跑 `SKILL.md` 开工协议（主题检索）。想法来自 Vision 或落在已有 epic 时深读对应分支。
 
 提问只问缺口：已从仓库确认什么、还缺什么、当前最关键分叉。按“事实 → 推荐 → 请用户决策”。
 
@@ -40,14 +40,14 @@
 
 ## 产物契约
 
-确认前无文件。确认后：`.cs/talks/{NNN}-{名称}.md`（扁平，无日期目录；`NNN` = 该目录已有最大序号 + 1，至少三位），保留：原始想法、真问题、术语、已确认决策、偏好与约束、影响与取舍、候选质量目标（无则省略）、UI 草图（无则省略）、已确认/待确认边界、最大未知、初步出口草案。按阅读路径组织，不复刻聊天顺序。
+确认前无文件。确认后：`codestable/talks/{NNN}-{名称}.md`（扁平，无日期目录；`NNN` = 该目录已有最大序号 + 1，至少三位），保留：原始想法、真问题、术语、已确认决策、偏好与约束、影响与取舍、候选质量目标（无则省略）、UI 草图（无则省略）、已确认/待确认边界、最大未知、初步出口草案。按阅读路径组织，不复刻聊天顺序。
 
 用户只确认整理 talk → 只写 talk。同时确认安排时再执行出口：
 
 - **快改**（小改默认）→ [fast](fast.md)（完成后 `NNN-x-ff-名称.md`；用户明确不要痕迹时可无 ff）
 - 目标全景 → Vision
-- 独立 feature/bug/chore/refactor → `.cs/issues/{NNN}-o-{名称}.md` + `templates/entities/issue.md`（设 `type`）
-- 新 epic → `.cs/epics/{NNN}-o-{名称}/spec.md`
+- 独立 feature/bug/chore/refactor → `codestable/issues/{NNN}-o-{名称}.md` + `templates/entities/issue.md`（设 `type`）
+- 新 epic → `codestable/epics/{NNN}-o-{名称}/spec.md`
 - Explore issue → [explore](explore.md)（`{NNN}-o-{名称}/`）
 - bug → [complain](complain.md)
 - 已有 epic 规格变化 → 谈记录决策后 [spec](spec.md)

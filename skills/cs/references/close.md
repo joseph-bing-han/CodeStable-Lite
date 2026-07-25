@@ -30,7 +30,7 @@
 
 **核心理解不引用代码。** 代码路径与命令留 issue/notes/证据索引。见 [docs](docs.md)。
 
-**先守组织再写内容。** 从 `.cs/spec/index.md` 找路径；缺位置先补入口，不散落平级文件。
+**先守组织再写内容。** 从 `codestable/spec/index.md` 找路径；缺位置先补入口，不散落平级文件。
 
 **探索文章按渐进式披露毕业。** 不是原样搬家；稳定现状机制说明按 Spec 结构安置。
 
@@ -38,7 +38,7 @@
 
 ### 读取关闭上下文
 
-- issue：用户给路径则读该文件/目录；否则在 `.cs/issues/` 按 `NNN-o-…` / 名称搜索
+- issue：用户给路径则读该文件/目录；否则在 `codestable/issues/` 按 `NNN-o-…` / 名称搜索
 - epic：读权威 `spec.md`、明确引用的相邻材料与相关 issue
 
 写入或暂存前确认目标事项、将回写的 spec/notes/Agent 指令/tools、以及要提交代码的当前版本。
@@ -48,14 +48,14 @@
 路径规则：把文件名或目录名中的 **`-o-` 改为 `-x-`**，保留 `NNN`、可选的 `ff`、名称不变。例如 `012-o-fix-login.md` → `012-x-fix-login.md`；`015-o-ff-toolbar.md` → `015-x-ff-toolbar.md`；Explore 目录 `003-o-auth-flow/` → `003-x-auth-flow/`。
 
 - **普通 issue**：检查目标、范围、质量目标、执行记录与验证；有界简化则检查上限/触发/方向。缺记录或证据 → 回 Design/Do。
-- **ff issue**：检查四节是否齐全（做了什么 / 改了哪些 / 验证 / 对 `.cs/` 的影响）。真相失效须已同步 spec 或明确标漂移；不要求完整质量清单与实现设计。同会话快改已直接落 `x-ff` 的，无需再关一次。
+- **ff issue**：检查四节是否齐全（做了什么 / 改了哪些 / 验证 / 对 `codestable/` 的影响）。真相失效须已同步 spec 或明确标漂移；不要求完整质量清单与实现设计。同会话快改已直接落 `x-ff` 的，无需再关一次。
 - **Explore issue**：不要求业务代码执行记录。须能讲清触发—过程—结果，相关责任/数据/状态有证据，未知显式标出；有具体变化时影响已分层。未达“足够行动” → 继续探索，不进 Do。
 
 按 `epic` frontmatter / 归属回写：
 
-- `type: ff`：默认不强制大段毕业；按「对 `.cs/` 的影响」执行或确认；坑点可进 notes
+- `type: ff`：默认不强制大段毕业；按「对 `codestable/` 的影响」执行或确认；坑点可进 notes
 - `epic` 空且非 ff：稳定结论 → project spec
-- `type: explore`：用户认可后，稳定现状机制说明 → `.cs/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore `## 关闭回写` 记录迁入位置
+- `type: explore`：用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore `## 关闭回写` 记录迁入位置
 - `epic` 有目录：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
 
 坑点 → notes；启动短规则 → `AGENTS.md` / `CLAUDE.md`；稳定工具 → tools。
@@ -64,7 +64,7 @@
 
 仅用户明确要求时。确认：关闭条件满足；epic 内直接推进已有足够验证；相关 issue 已关或明确废弃/移出；质量约束有证据或保留为后续约束；毕业候选足够稳定。
 
-合并进 `.cs/spec/` 合适层级后，epic `spec.md` 标 `closed` 并记录合并位置；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
+合并进 `codestable/spec/` 合适层级后，epic `spec.md` 标 `closed` 并记录合并位置；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
 
 ### 提交关闭变更
 
@@ -76,7 +76,7 @@
 
 关闭 issue：
 
-- 更新 `## 关闭结论`（常规 issue）：判断、验证摘要（含质量证据）、回写位置、遗留事项；ff 以「对 `.cs/` 的影响」为准，可无长关闭结论
+- 更新 `## 关闭结论`（常规 issue）：判断、验证摘要（含质量证据）、回写位置、遗留事项；ff 以「对 `codestable/` 的影响」为准，可无长关闭结论
 - `status: closed`；路径 `-o-` → `-x-`（序号与名称不变）
 
 关闭 Explore issue：另更新 spec 阅读路径与 Explore `## 关闭回写`。

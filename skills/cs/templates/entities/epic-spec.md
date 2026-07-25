@@ -17,11 +17,11 @@ created: YYYY-MM-DD
 
 ## 来源 Vision（按需）
 
-- `.cs/vision/[path]`：[本 Epic 从目标世界摘取了什么；哪些相邻愿景不在本次边界内]
+- `codestable/vision/[path]`：[本 Epic 从目标世界摘取了什么；哪些相邻愿景不在本次边界内]
 
 ## 关联 Project Spec
 
-- `.cs/spec/[path]`：[关联原因；本 epic 准备改变哪部分当前真相]
+- `codestable/spec/[path]`：[关联原因；本 epic 准备改变哪部分当前真相]
 
 ## 当前方案
 
@@ -77,7 +77,7 @@ created: YYYY-MM-DD
 
 ### Issues（按需）
 
-- [ ] `.cs/issues/{NNN}-o-{名称}.md`：[它解决什么；依赖什么；验证什么]
+- [ ] `codestable/issues/{NNN}-o-{名称}.md`：[它解决什么；依赖什么；验证什么]
 
 ### 暂停或废弃
 
@@ -101,7 +101,7 @@ created: YYYY-MM-DD
 
 ## 合并回 Project Spec 的候选
 
-- [epic 关闭时应合并到 `.cs/spec/...` 的稳定结论]
+- [epic 关闭时应合并到 `codestable/spec/...` 的稳定结论]
 
 ## 关闭回写
 

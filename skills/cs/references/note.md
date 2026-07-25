@@ -2,16 +2,16 @@
 
 ## 背景
 
-把“这事以后还会用到”放到未来真正会读取的位置，但不要把 `.cs/` 或 Agent 指令写成垃圾桶。
+把“这事以后还会用到”放到未来真正会读取的位置，但不要把 `codestable/` 或 Agent 指令写成垃圾桶。
 
 两条去处，没有第三条：
 
 | 去处 | 放什么 |
 |---|---|
 | **`AGENTS.md` / `CLAUDE.md`**（项目根，框架自动注入） | 短而稳、几乎每次启动都影响判断的规则 |
-| **`.cs/notes/`** | 需要背景、证据、步骤的可复用知识 |
+| **`codestable/notes/`** | 需要背景、证据、步骤的可复用知识 |
 
-**不要**再建 `.cs/facts.md` 或 CodeStable 自创的“启动事实”文件。跟各 Agent 框架走：跨工具优先 `AGENTS.md`，只给 Claude 的用 `CLAUDE.md`。
+**不要**再建 `codestable/facts.md` 或 CodeStable 自创的“启动事实”文件。跟各 Agent 框架走：跨工具优先 `AGENTS.md`，只给 Claude 的用 `CLAUDE.md`。
 
 ## 原则
 
@@ -25,7 +25,7 @@ notes 按 [docs](docs.md) 组织：服务复用，不复刻聊天流水。
 
 ## 行动指南
 
-先复用框架已注入的指令与当前上下文；查重时搜 `.cs/notes/`、相关 spec 与 issue/epic。已有相近 notes 则更新原文件（文末可加日期小节），不另开一条。
+先复用框架已注入的指令与当前上下文；查重时搜 `codestable/notes/`、相关 spec 与 issue/epic。已有相近 notes 则更新原文件（文末可加日期小节），不另开一条。
 
 写启动规则：
 
@@ -36,13 +36,13 @@ notes 按 [docs](docs.md) 组织：服务复用，不复刻聊天流水。
 
 适合进指令的例子：固定测试/构建命令、环境陷阱、目录禁区、长期命名约定、指向某 note 的一行索引。
 
-写 notes：`.cs/notes/{NNN}-{名称}.md`（扁平序号，见 `SKILL.md`）。标题和正文保留可搜关键词。
+写 notes：`codestable/notes/{NNN}-{名称}.md`（扁平序号，见 `SKILL.md`）。标题和正文保留可搜关键词。
 
 ## 产物契约
 
 `AGENTS.md` / `CLAUDE.md`：仅追加或更新启动短规则；查重；不搞第二套事实文件。
 
-`.cs/notes/{NNN}-{名称}.md` 推荐结构：
+`codestable/notes/{NNN}-{名称}.md` 推荐结构：
 
 ```markdown
 # {知识点}
@@ -68,7 +68,7 @@ notes 按 [docs](docs.md) 组织：服务复用，不复刻聊天流水。
 
 ## 收尾汇报
 
-告诉用户写到了 `.cs/notes/` 还是 `AGENTS.md` / `CLAUDE.md`、为什么选择这个去处、是新增还是更新已有文件。不要把文件清单当主要汇报，先讲这条知识未来会怎么帮上忙。
+告诉用户写到了 `codestable/notes/` 还是 `AGENTS.md` / `CLAUDE.md`、为什么选择这个去处、是新增还是更新已有文件。不要把文件清单当主要汇报，先讲这条知识未来会怎么帮上忙。
 
 ## 应用场景
 

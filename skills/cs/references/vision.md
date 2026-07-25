@@ -26,7 +26,7 @@ Vision 模式负责和用户一起把这个脑内世界外化成可导航的产�
 
 ## 行动指南
 
-先复用当前上下文；需要写入时读取 `.cs/vision/index.md`，沿其阅读路径定位最相关分支，并确认准备修改的入口或子文档当前版本。只读与本次构想有关的局部，不为放置一个想法遍历整棵树。
+先复用当前上下文；需要写入时读取 `codestable/vision/index.md`，沿其阅读路径定位最相关分支，并确认准备修改的入口或子文档当前版本。只读与本次构想有关的局部，不为放置一个想法遍历整棵树。
 
 对话中先用自然语言复述用户想要的体验或结果，再提出最能改变地图结构的一个问题。事实能从 Project Spec、现有 Vision、Epic、README 或代码确认时先查；产品取舍、互斥方向、命名和优先关系由用户决定。
 
@@ -44,7 +44,7 @@ Vision 模式负责和用户一起把这个脑内世界外化成可导航的产�
 
 ## 产物契约
 
-Vision 根入口是 `.cs/vision/index.md`，使用 `templates/entities/vision-index.md`。复杂区域可以建立子目录，并使用 `templates/entities/vision-section-index.md` 作为该层入口；每层入口必须建立方向感、统一语言和下一步阅读路径，不能只是文件清单。
+Vision 根入口是 `codestable/vision/index.md`，使用 `templates/entities/vision-index.md`。复杂区域可以建立子目录，并使用 `templates/entities/vision-section-index.md` 作为该层入口；每层入口必须建立方向感、统一语言和下一步阅读路径，不能只是文件清单。
 
 根 Vision 应当在材料存在时覆盖：
 

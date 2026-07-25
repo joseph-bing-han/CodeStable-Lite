@@ -25,13 +25,13 @@ Tired of OpenSpec's flimsiness, Oh-My-OpenAgent's over-engineering, and Superpow
 Install with the Skills CLI:
 
 ```bash
-npx skills add liuzhengdongfortest/CodeStable
+npx skills add codestable/CodeStable-Lite
 ```
 
 Installation is project-local by default. Add `-g` to make it available across projects:
 
 ```bash
-npx skills add liuzhengdongfortest/CodeStable -g
+npx skills add codestable/CodeStable-Lite -g
 ```
 
 For local development, verify discovery from the repository root:
@@ -94,7 +94,7 @@ CodeStable goes the **other way**:
 <tr><th></th><th>Agent-orchestration camp</th><th>CodeStable</th></tr>
 <tr><td><b>Core entity</b></td><td>Agent / Role / Team</td><td>Vision spec · project spec · epic spec · issues</td></tr>
 <tr><td><b>Main question</b></td><td>How do agents divide work, hand off, coordinate?</td><td>How do the software's target world, current truth, change lines, and closeable work get organized and evolved?</td></tr>
-<tr><td><b>Where state lives</b></td><td>Agent sessions / message buses / queues</td><td>The <code>.cs/</code> file tree (readable by both humans and AI)</td></tr>
+<tr><td><b>Where state lives</b></td><td>Agent sessions / message buses / queues</td><td>The <code>codestable/</code> file tree (readable by both humans and AI)</td></tr>
 <tr><td><b>Pain it solves</b></td><td>One agent isn't enough; need coordination to scale</td><td>Software complexity overflows context; tacit knowledge gets lost; requirements drift</td></tr>
 <tr><td><b>Role of humans</b></td><td>The less the better — full automation is the ideal</td><td>Human-in-the-loop — the programmer owns the whole; AI is an efficient executor</td></tr>
 </table>
@@ -117,19 +117,19 @@ CodeStable separates four responsibilities: the target application world, curren
 
 ### vision spec — the target application world
 
-The vision spec lives in `.cs/vision/`. It lets an individual developer externalize the product in their head: how users eventually get results, which capability areas make up the application, which imaginative ideas and mutually exclusive directions remain open, and which areas are planned, under construction, or real.
+The vision spec lives in `codestable/vision/`. It lets an individual developer externalize the product in their head: how users eventually get results, which capability areas make up the application, which imaginative ideas and mutually exclusive directions remain open, and which areas are planned, under construction, or real.
 
 Vision is a recursively expandable product map. Each `index.md` leads with user journeys and uses the capability landscape as a secondary view. The agent does more than transcribe: it helps place, divide, connect, and challenge ideas. Vision is not a roadmap or task board; detailed delivery state remains in epics and issues.
 
 ### project spec — the mainline truth
 
-The project spec lives in `.cs/spec/`. It tells a new developer what the project currently is, which capabilities and boundaries already hold, how the architecture expands, and where shared language lives. The target future belongs in Vision; Project Spec keeps stable current truth.
+The project spec lives in `codestable/spec/`. It tells a new developer what the project currently is, which capabilities and boundaries already hold, how the architecture expands, and where shared language lives. The target future belongs in Vision; Project Spec keeps stable current truth.
 
 Shared language belongs in the nearest `index.md` where it applies, not in a separate domain hierarchy. A spec does not record change logs; it explains why the current design, boundaries, and trade-offs stand.
 
 ### epic spec — a large-change line
 
-Large changes live in `.cs/epics/YYYY/MM/DD/{短语}/spec.md`. An epic may extract a slice from Vision or begin from a current problem. Its `spec.md` is the single authority for status, current requirements, architecture considerations, direct slices and issue links, blockers, close conditions, and graduation candidates.
+Large changes live in `codestable/epics/{NNN}-o-{name}/spec.md`; the directory becomes `{NNN}-x-{name}/` when closed. An epic may extract a slice from Vision or begin from a current problem. Its `spec.md` is the single authority for status, current requirements, architecture considerations, direct slices and issue links, blockers, close conditions, and graduation candidates.
 
 Issues under an epic close back into the epic spec first. Only when a human confirms the whole epic is done does AI merge the graduated conclusions back into the project spec.
 
@@ -189,8 +189,8 @@ The repository distributes one `cs` Skill. Users no longer choose among a catalo
 
 | Intent | What `cs` does internally |
 |---|---|
-| First-time setup | Create or complete the `.cs/` skeleton without silently migrating old requirements |
-| Imagining the whole application | Help the user shape a navigable product map under `.cs/vision/` without forcing immediate delivery |
+| First-time setup | Create or complete the `codestable/` skeleton without silently migrating old requirements |
+| Imagining the whole application | Help the user shape a navigable product map under `codestable/vision/` without forcing immediate delivery |
 | Fuzzy local idea or planning | Inspect context, clarify the real problem, then directly change, update Vision, create an issue / epic, or continue exploring |
 | Spec change | Maintain the project spec or the epic's single `spec.md` |
 | Behavior breaks expectations | Diagnose, fix, and verify through a feedback loop; direct for simple bugs, managed by issue when tracking helps |
@@ -227,11 +227,13 @@ Small clear change ──implement and verify directly──> Project Spec (only
 
 ## Runtime structure
 
-After `/cs` onboards the project, a `.cs/` directory appears at the project root — the aggregate root for specs, work items, and knowledge artifacts.
+After `/cs` onboards the project, a `codestable/` directory appears at the project root — the aggregate root for specs, work items, and knowledge artifacts.
+
+A legacy `.cs/` workspace is never silently copied into a second directory. After confirming the move, run `python skills/cs/scripts/init_codestable.py --migrate-legacy`; if both `.cs/` and `codestable/` exist, reconcile them manually before initializing.
 
 ```
 your-project/
-├── .cs/
+├── codestable/
 │   ├── talks/                # Discussion synthesis (written only after confirmation)
 │   │   └── YYYY/MM/DD/{短语}.md
 │   ├── vision/               # Vision spec: target application world
@@ -258,7 +260,7 @@ your-project/
 
 **Key points:**
 
-- Specs, work items, and knowledge artifacts aggregate under `.cs/`, so "how did we handle that change last time" is three seconds away
+- Specs, work items, and knowledge artifacts aggregate under `codestable/`, so "how did we handle that change last time" is three seconds away
 - `vision/` holds the target application world, candidates, and mutually exclusive directions; AI helps organize the map and writes only after user confirmation
 - `spec/` is the project spec, organizing mainline requirements, architecture considerations, shared language, and reading paths for a developer entering the project
 - `epics/` are large-change lines; at close they graduate into Project Spec and check realization state and links in their source Vision
@@ -269,18 +271,18 @@ your-project/
 - Talks and notes default to `YYYY/MM/DD/{短语}.md` date shards, epics use `YYYY/MM/DD/{短语}/` workspaces, ordinary issues use `YYYY/MM/DD/{status}-{短语}.md`, and exploratory issues use `YYYY/MM/DD/{status}-{短语}/` workspaces; search recursively under each area
 - `notes/` is the knowledge notes area — plain markdown, no frontmatter, full-text searchable. `cs` decides whether daily "remember this" work belongs in notes or project agent instructions
 - Human-guided unknown workflows become `notes/`; add a one-line reference to `AGENTS.md` or `CLAUDE.md` only when the workflow is a stable prerequisite for related work, and produce `tools/` only when automation is stable
-- The agent framework injects root instruction files automatically, so `cs` neither reads them proactively nor models them under `.cs/`; prefer an existing `AGENTS.md` for cross-agent rules and `CLAUDE.md` for Claude-only rules
+- The agent framework injects root instruction files automatically, so `cs` neither reads them proactively nor models them under `codestable/`; prefer an existing `AGENTS.md` for cross-agent rules and `CLAUDE.md` for Claude-only rules
 - Keep Markdown appropriately concise without a universal line limit; preserve the complete core structure, background, principles, and contracts in the main narrative, and progressively disclose only details that are scenario-specific or obstruct the reading flow
 
 ### Hard constraint
 
 > CodeStable has one installed `cs` unit. Its core structure and shared boundaries live in `SKILL.md`; scenario-specific action rules and principles live in that same skill's `references/`, with templates and scripts in the same package.
 >
-> `SKILL.md` must say when to read each reference. It must not hide core contracts or load every scenario at once. The target application world belongs in `.cs/vision/`, stable project truth in `.cs/spec/`, reusable knowledge in `.cs/notes/`, and short startup rules directly in `AGENTS.md` or `CLAUDE.md`.
+> `SKILL.md` must say when to read each reference. It must not hide core contracts or load every scenario at once. The target application world belongs in `codestable/vision/`, stable project truth in `codestable/spec/`, reusable knowledge in `codestable/notes/`, and short startup rules directly in `AGENTS.md` or `CLAUDE.md`.
 
 Before switching internal modes, `cs` first decides whether the user is asking, imagining, discussing, or authorizing action. It reuses a known vision, project spec, epic spec, or issue when current, and confirms the target file's latest version before writing.
 
-To change system rules, update `cs/SKILL.md`, the relevant reference, and its templates together; project-specific stable needs and operating knowledge belong in the matching `.cs/` entities.
+To change system rules, update `cs/SKILL.md`, the relevant reference, and its templates together; project-specific stable needs and operating knowledge belong in the matching `codestable/` entities.
 
 ---
 
@@ -312,7 +314,7 @@ Issues welcome — share your real-world dev pain and refactoring experience.
 ---
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=liuzhengdongfortest/CodeStable&type=date&legend=top-left)](https://www.star-history.com/?repos=liuzhengdongfortest%2FCodeStable&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/chart?repos=codestable/CodeStable-Lite&type=date&legend=top-left)](https://www.star-history.com/?repos=codestable%2FCodeStable-Lite&type=date&legend=top-left)
 
 <div align="center">
 

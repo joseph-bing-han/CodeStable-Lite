@@ -67,7 +67,7 @@ def required_skill_files(root: Path) -> list[Path]:
             "docs.md",
             "economy.md",
             "explore.md",
-            "great-skills.md",
+            "fast.md",
             "maketools.md",
             "note.md",
             "onboard.md",
@@ -75,23 +75,24 @@ def required_skill_files(root: Path) -> list[Path]:
             "spec.md",
             "talk.md",
             "ui-spec.md",
+            "vision.md",
         ]
     )
     files.extend(
         skill / "templates/entities" / filename
         for filename in [
-            "bug-issue.md",
-            "chore-issue.md",
             "epic-spec.md",
             "explore-article.md",
             "explore-index.md",
-            "feature-issue.md",
+            "ff-issue.md",
+            "issue.md",
             "notes.md",
             "project-spec-index.md",
-            "refactor-issue.md",
             "spec-section-index.md",
             "talk.md",
             "tool.md",
+            "vision-index.md",
+            "vision-section-index.md",
         ]
     )
     return files
@@ -148,7 +149,7 @@ def check_quality_contract(root: Path, findings: list[Finding]) -> None:
         findings.append(Finding(rel(skill_md, root), "does not route quality.md"))
 
     templates = skill / "templates/entities"
-    for filename in ["bug-issue.md", "chore-issue.md", "feature-issue.md", "refactor-issue.md"]:
+    for filename in ["issue.md"]:
         path = templates / filename
         if path.is_file() and "## 质量目标\n" not in path.read_text(encoding="utf-8"):
             findings.append(Finding(rel(path, root), "missing quality objective contract"))
@@ -168,11 +169,11 @@ def check_economy_contract(root: Path, findings: list[Finding]) -> None:
         findings.append(Finding(rel(skill_md, root), "does not route economy.md"))
 
     templates = skill / "templates/entities"
-    for filename in ["bug-issue.md", "chore-issue.md", "feature-issue.md", "refactor-issue.md"]:
+    for filename in ["issue.md"]:
         path = templates / filename
         if path.is_file():
             text = path.read_text(encoding="utf-8")
-            if "已知上限" not in text or "升级触发" not in text:
+            if "有界简化上限/触发/方向" not in text:
                 findings.append(Finding(rel(path, root), "missing bounded simplification contract"))
 
 
@@ -195,8 +196,7 @@ def check_ui_spec_contract(root: Path, findings: list[Finding]) -> None:
         "spec-section-index.md": "## 界面与交互（按需）",
         "epic-spec.md": "## 界面与交互变化（按需）",
         "talk.md": "## UI 对齐草图（按需）",
-        "feature-issue.md": "## UI 变化（按需）",
-        "bug-issue.md": "## UI 实际与预期（按需）",
+        "issue.md": "## UI 变化 / 实际与预期（按需）",
     }
     for filename, marker in required_markers.items():
         path = templates / filename
@@ -206,7 +206,7 @@ def check_ui_spec_contract(root: Path, findings: list[Finding]) -> None:
 
 def check_readmes(root: Path, findings: list[Finding]) -> None:
     required = [
-        "npx skills add liuzhengdongfortest/CodeStable",
+        "npx skills add codestable/CodeStable-Lite",
         "npx skills add . --list",
         "npx skills update cs",
     ]
