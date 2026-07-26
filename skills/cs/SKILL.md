@@ -16,9 +16,17 @@ CodeStable 是**软件演化的理解方式**，不是强制流水线，也不�
 
 **调用本技能 ≠ 跑完整生命周期。** 先定姿态，再只读该姿态需要的 reference；同一会话可换姿态，**不必**向用户宣布“进入某模式”。
 
+### 沟通默认：先简单，后展开
+
+先用自然、简短的话说清**结论和原因**，优先使用用户正在使用的词；不要一上来抛框架、术语、章节或长清单。只有用户明确要求、需要做取舍/授权，或必须给出验证与风险证据时，才展开实现安排、规则与细节。简短不是省略关键判断：先让用户容易听懂，再按需下钻。
+
 ### 节省上下文（Codex）
 
 同一会话中，已经完整读取且没有被改动的 `SKILL.md`、reference、template 或相邻说明，**必须复用既有理解，不要重复读取**。只有用户明确要求重读、文件在本会话中被改动，或现有理解不足以支撑当前判断时，才读取相关最小范围。
+
+### 不预拆迷雾
+
+还不能精确表述的问题，不要为追踪而提前拆成 issue；先用 Talk、Explore 或穿刺把目标、现状或关键风险弄清，能说成可关闭行动后再建 issue 或 Epic。
 
 ---
 
@@ -74,6 +82,21 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
      │                    └──关闭毕业───────────┤
      └──目标世界              Project Spec（当前现实）
 ```
+
+### `codestable/` 工作区地图
+
+```text
+codestable/
+├── vision/  目标世界、旅程与候选方向
+├── spec/    当前稳定真相
+├── epics/   有界的大变化
+├── issues/  可关闭行动（含 ff 与 Explore）
+├── notes/   可复用知识
+├── talks/   尚未落定的讨论
+└── tools/   稳定、可执行的流程工具
+```
+
+这是定位地图，不是每次必读清单：先按当前姿态和命中内容下钻，只读取足以支撑判断的局部。
 
 | 实体 | 路径 | 回答什么 |
 |---|---|---|
@@ -131,7 +154,7 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
 | 用户说关闭/收尾 | [close](references/close.md)；不自动进 `done/` |
 | push / 部署 / 初始化或覆盖 `codestable/` / 关 epic / 破坏性操作 | **必须**明确授权 |
 
-毕业摘要：独立 issue → project spec；epic 内 issue → epic spec；Epic 关闭 → project spec 并检查 Vision；ff 默认不大段毕业，真相失效则同步或标漂移。细则 [close](references/close.md)。
+毕业摘要：独立 issue → project spec；epic 内 issue → epic spec；Epic 关闭 → 把稳定结论的具体内容合并进 project spec 并检查 Vision（**链接 Epic 不是毕业回写**）；ff 默认不大段毕业，真相失效则同步或标漂移。细则 [close](references/close.md)。
 
 ### 质量（一句）
 

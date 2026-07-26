@@ -16,7 +16,7 @@
 
 **只沉淀仍然有效的东西。** 不把事项全文搬进 spec；流水与中间判断留原事项。
 
-**回写到正确层级。** 独立 issue → project spec；epic issue → epic spec；epic 关闭 → project spec 并检查 Vision。普通 issue 不更新 Vision。notes / Agent 指令 / tools 按复用价值分流。
+**回写到正确层级。** 独立 issue → project spec；epic issue → epic spec；epic 关闭 → project spec 并检查 Vision。关闭 Epic 的毕业是把稳定结论的**具体内容**写进 Project Spec：不能只写“见某 Epic”、把 Epic 链接当作主叙述，或要求读者先读已关闭 Epic 才能理解当前系统。Epic 链接只保留为历史、证据或深入设计的阅读入口。普通 issue 不更新 Vision。notes / Agent 指令 / tools 按复用价值分流。
 
 **只按事实更新 Vision 状态。** 实现程度与链接可更新；目标内容或候选关系要变时须用户确认，否则记录偏差。
 
@@ -64,7 +64,15 @@
 
 仅用户明确要求时。确认：关闭条件满足；epic 内直接推进已有足够验证；相关 issue 已关或明确废弃/移出；质量约束有证据或保留为后续约束；毕业候选足够稳定。
 
-合并进 `codestable/spec/` 合适层级后，epic `spec.md` 标 `closed` 并记录合并位置；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
+先把 Epic 的稳定成果整理进 `codestable/spec/` 的合适层级，再关闭 Epic。整理时至少回答：当前系统新增或改变了什么能力、它怎样工作、关键责任/数据或状态边界是什么、后续变化必须遵守什么约束、哪些范围仍不属于它。Project Spec 的正文必须让只读当前规格的人理解这些结论；不要用“详见 Epic”代替内容，也不要原样搬运 issue 列表、实施过程或测试流水。
+
+写入后逐项检查：
+
+- Project Spec 已有可独立阅读的能力说明、核心契约和长期取舍；链接只承担证据或深入阅读路径。
+- 已关闭 Epic 中仍有价值的内容只保留为设计历史、验证证据、被排除方案或更细的背景，不再是当前真相的唯一出处。
+- Project Spec 没有遗留与实现冲突的旧表述；活跃但尚未关闭的其他 Epic 不被误写成已毕业的稳定契约。
+
+确认上述回写后，epic `spec.md` 标 `closed` 并记录 Project Spec 中的具体合并章节；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
 
 ### 提交关闭变更
 
@@ -83,7 +91,8 @@
 
 关闭 epic：
 
-- `spec.md` 状态 `closed`；记录合并到 project spec 的位置与已检查/更新的 Vision
+- Project Spec 已直接写入稳定能力、核心契约、长期边界与取舍；不得只记录 Epic 链接或“见 Epic”
+- `spec.md` 状态 `closed`；记录合并到 Project Spec 的具体章节与已检查/更新的 Vision
 - 目录 `{NNN}-o-{名称}/` → `{NNN}-x-{名称}/`；不删除目录
 
 遗留事项应成新 issue 或留在 epic 当前推进/阻碍中，不藏在关闭结论里；仅用户明确要求时建新 issue。
