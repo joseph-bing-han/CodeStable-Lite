@@ -7,6 +7,7 @@
 - Added an adaptive Vision action mode: AI helps individual developers organize their product world without forcing every idea into an Epic or Issue.
 - Made Issues optional when ongoing management adds value; direct, clear changes and simple bug fixes can now be implemented and verified without creating work-item ceremony.
 - Updated Talk, Spec, Complain, Do, Close, quality guidance, templates, initialization, skill metadata, and bilingual documentation to keep Vision, current truth, bounded change, and direct action responsibilities consistent.
+- Rewrote the bilingual README around controlled software evolution—posture routing, bounded attention, uncertainty management, evolution transactions, and knowledge graduation—added a matching cover illustration, and synchronized its workspace examples with the `NNN-o|x-...` naming contract.
 
 ## 0.6.0
 
