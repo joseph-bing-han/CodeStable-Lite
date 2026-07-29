@@ -1,5 +1,7 @@
 # Close：关闭与沉淀
 
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)。关闭 Issue / Epic 仍遵守其业务授权，但 Close workflow 自身必须创建、更新并归档 Task；Task 归档不等于业务实体关闭。
+
 关闭 issue 或 epic，把仍成立的结论**毕业**到正确层级；Epic 关闭时检查来源 Vision 的实现状态与链接。
 
 **关闭 ≠ 完成。** 完成指实现与验证已达成目标；关闭须用户授权收尾（“关闭 / 收尾 / 做完并沉淀”等）。Git 契约见下与 `SKILL.md`。
@@ -12,13 +14,13 @@
 
 ## 原则
 
-**先确认可以关闭。** 目标达成、范围未暗扩、已选质量目标均有相称证据。Epic 必须由人确认关闭，不能因 issue 看起来都完成就自行关闭。
+**先检查可以关闭。** 目标达成、范围未暗扩、已选质量目标均有相称证据。Epic 的人类关闭授权必须在 Task 创建前取得，不能因 issue 看起来都完成就自行关闭。
 
 **只沉淀仍然有效的东西。** 不把事项全文搬进 spec；流水与中间判断留原事项。
 
 **回写到正确层级。** 独立 issue → project spec；epic issue → epic spec；epic 关闭 → project spec 并检查 Vision。关闭 Epic 的毕业是把稳定结论的**具体内容**写进 Project Spec：不能只写“见某 Epic”、把 Epic 链接当作主叙述，或要求读者先读已关闭 Epic 才能理解当前系统。Epic 链接只保留为历史、证据或深入设计的阅读入口。普通 issue 不更新 Vision。notes / Agent 指令 / tools 按复用价值分流。
 
-**只按事实更新 Vision 状态。** 实现程度与链接可更新；目标内容或候选关系要变时须用户确认，否则记录偏差。
+**只按事实更新 Vision 状态。** 实现程度与链接可更新；目标内容或候选关系要变时，授权必须在 Task 创建前取得。计划后才发现差异时记录偏差并保持原目标，不再次询问。
 
 **spec 写当前为什么这样。** 不写“某天从 A 改到 B”的流水。
 
@@ -55,16 +57,16 @@
 
 按物理归属回写；路径是权威来源，旧版 `epic` frontmatter 只用于识别并迁移 open 事项、读取已关闭历史：
 
-- `type: ff`：默认不强制大段毕业；按「对 `codestable/` 的影响」执行或确认；坑点可进 notes
-- 根 issues 下且无旧版 epic 关联：稳定结论 → project spec
-- `type: explore`：独立 Explore 经用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；Epic 内 Explore 先回写所属 epic spec；影响分析留 `related_issue`；证据与已排除理解留 Explore issue
-- Epic 的 `issues/` 下：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
+- `type: ff`：默认不强制大段毕业；按「对 `codestable/` 的影响」执行已记录方向；坑点可进 notes
+- `epic` 空且非 ff：稳定结论 → project spec
+- `type: explore`：计划确定前获认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore `## 关闭回写` 记录迁入位置
+- `epic` 有目录：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
 
 坑点 → notes；启动短规则 → `AGENTS.md` / `CLAUDE.md`；稳定工具 → tools。
 
 ### 关闭 epic
 
-仅用户明确要求时。确认：关闭条件满足；epic 内直接推进已有足够验证；同目录 `issues/` 中的事项已关或明确废弃/移出；旧版仍在根 issues 下关联该 Epic 的事项也已处理；质量约束有证据或保留为后续约束；毕业候选足够稳定。
+仅用户在计划确定前明确要求并把关闭授权写入 Task 时执行。随后自动确认：关闭条件满足；epic 内直接推进已有足够验证；相关 issue 已关或明确废弃/移出；质量约束有证据或保留为后续约束；毕业候选足够稳定。
 
 先把 Epic 的稳定成果整理进 `codestable/spec/` 的合适层级，再关闭 Epic。整理时至少回答：当前系统新增或改变了什么能力、它怎样工作、关键责任/数据或状态边界是什么、后续变化必须遵守什么约束、哪些范围仍不属于它。Project Spec 的正文必须让只读当前规格的人理解这些结论；不要用“详见 Epic”代替内容，也不要原样搬运 issue 列表、实施过程或测试流水。
 
@@ -74,13 +76,13 @@
 - 已关闭 Epic 中仍有价值的内容只保留为设计历史、验证证据、被排除方案或更细的背景，不再是当前真相的唯一出处。
 - Project Spec 没有遗留与实现冲突的旧表述；活跃但尚未关闭的其他 Epic 不被误写成已毕业的稳定契约。
 
-确认上述回写后，epic `spec.md` 标 `closed` 并记录 Project Spec 中的具体合并章节；Epic 目录名 `-o-` → `-x-`（序号与名称不变），内部 `issues/` 整体随目录保留，不重编号、不因 Epic 关闭改子 Issue 状态。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
+完成上述回写检查后，epic `spec.md` 标 `closed` 并记录 Project Spec 中的具体合并章节；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；计划后发现目标内容需要变化时只记录偏差，不修改目标、不再次询问。
 
 ### 提交关闭变更
 
-若在 git 仓库：关闭结论与长期实体回写完成后，**相关变更同一 commit**（业务代码、目标 issue/epic、project/epic spec、notes/Agent 指令/tools）。
+只有计划确定前已明确授权 commit 时，关闭结论与长期实体回写才与相关业务变更进入同一 commit；未授权则保留工作区改动并完成其余关闭动作，不补问。
 
-提交前 `git status --short`，只暂存相关文件。无关脏改不碰；同文件混有无关变更则停下说明。不 amend / rebase / reset；不 push，除非用户明确要求。
+已授权提交时，提交前运行 `git status --short`，只暂存相关文件。无关脏改不碰；同文件混有无法安全拆分的无关变更时排除该文件的提交并记录原因，不停止其余关闭动作。不 amend / rebase / reset；不 push，除非计划确定前已明确授权。
 
 ## 产物契约
 
@@ -97,7 +99,7 @@
 - `spec.md` 状态 `closed`；记录合并到 Project Spec 的具体章节与已检查/更新的 Vision
 - 目录 `{NNN}-o-{名称}/` → `{NNN}-x-{名称}/`；不删除目录
 
-遗留事项应成新 issue 或留在 epic 当前推进/阻碍中，不藏在关闭结论里；仅用户明确要求时建新 issue。
+遗留事项应成新 issue 候选或留在 epic 当前推进/阻碍中，不藏在关闭结论里；只有计划确定前已获授权才新建 Issue，否则记入 Task 候选后继续收尾。
 
 ## 收尾汇报
 
@@ -105,6 +107,6 @@
 
 ## 应用场景
 
-实现验证完成后关闭 issue；Explore 经确认合并 project spec；bug/feature 关闭沉淀；用户确认后关 epic。
+实现验证完成后关闭 issue；Explore 在计划前获准后合并 project spec；bug/feature 关闭沉淀；Epic 在计划前获准后关闭。
 
 不适用：代码未完成 → Do；设计缺口 → Design；规格仍变 → Spec；默认不推送不部署。

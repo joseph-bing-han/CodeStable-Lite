@@ -1,8 +1,9 @@
 interface:
   display_name: "CodeStable"
-  short_description: "按姿态调用的软件演化理解：讨论 / 快改 / 受管理 / 规格"
+  short_description: "单入口软件演化：按姿态行动，强制 Task 留痕，计划后无人值守"
   default_prompt: |
     Use $cs as CodeStable: one world model (Vision / Project Spec / Epic / Issue under codestable/), many stances.
-    First pick the user's stance (discuss / fast ship / managed implement / bug / vision-spec / explore / close / review / …), then read only that stance's reference. Do not run a full lifecycle by default.
-    Small clear changes default to 快改 with an ff issue unless the user explicitly wants no trace.
-    Continue to the authorized outcome; announce mode names only if useful.
+    First pick the user's stance, then read only that stance's reference plus the mandatory Task and unattended-execution contracts.
+    Before substantive work, create or resume a Task. Update it after every observable batch, then complete and atomically archive it before the final answer. Read-only work and no-issue requests are not exceptions.
+    Ask clarifying questions only before the plan is committed to the Task. After commitment, run unattended: choose the recommended safe direction, resolve failures, and continue until every planned outcome, verification gate, and Task archive is complete.
+    Keep the single cs entry and announce stance names only when useful.

@@ -18,7 +18,7 @@
 
 ---
 
-CodeStable is a **controlled software-evolution framework** for AI-assisted development. It does not make people choose Talk, Design, or Do for an agent, and it does not force every request through a Spec–Plan–Task pipeline. Instead, it helps people and agents continually judge:
+CodeStable is a **controlled software-evolution framework** for AI-assisted development. It does not make people choose Talk, Design, or Do for an agent, and it does not force every request to produce a complete Vision, Spec, Epic, or Issue set. Instead, it helps people and agents continually judge:
 
 - what the project knows now and what it is trying to become;
 - how much management this change deserves;
@@ -46,6 +46,12 @@ For local development, verify discovery from the repository root:
 
 ```bash
 npx skills add . --list
+```
+
+Update the installed single Skill:
+
+```bash
+npx skills update cs
 ```
 
 Onboard a project through the single entry:
@@ -84,6 +90,29 @@ Within one conversation, a user may be discussing, understanding current behavio
 
 Users therefore do not need to choose a sub-skill, and the system does not load workflows that have not happened. For an agent, the right context matters more than a larger context.
 
+### Give every posture the same traceable Task spine
+
+The posture decides how work should be done; a Task records how this run advances. Except for initial clarification before an executable plan exists, discussion synthesis, Vision, Spec, current-state exploration, quick changes, managed implementation, bug fixing, closeout, and read-only Review all follow:
+
+```text
+create or resume Task
+  -> execute one observable batch
+  -> update Task
+  -> continue implementation, verification, and required fixes
+  -> mark completed
+  -> archive atomically and verify no matching active Task remains
+```
+
+The Task List is the source of truth; an agent's native Todo or Tasks view is only a runtime mirror. “No Issue,” “no ff,” “read-only,” and “small change” may reduce business artifacts, but they never bypass Task creation, updates, completion, and archive. `completed` is only a pre-archive state. Closure requires a valid document under `codestable/tasks/archived/`, no matching active document, and a conflict-free scan.
+
+Archived filenames use `YYYY-MM-DD-NNN-{task}.md`. `NNN` is a three-digit sequence shared by every Task archived on that date; it resets to `001` each day and increases in actual archive order.
+
+For existing `YYYY-MM-DD-{task}.md` archives, run `python3 <cs-skill>/scripts/codestable_task_runtime.py --root . migrate-archive-filenames`. A date with one legacy archive can be migrated automatically; multiple legacy archives on one date require manually assigning the known completion order.
+
+The Lite runtime permits only `tasks/active/` and `tasks/archived/`. Create and archive use exclusive publication that never overwrites existing evidence; scan treats extra directories, noncanonical files, and symlinks as failures. Archive records its source snapshot hash, so the original command can be replayed safely if a success response is lost. If an active path is recreated after archive, archive or cleanup removes it only when its content matches either the unique valid archive or that archive's recorded source snapshot; divergent duplicates stay fail-closed.
+
+Before plan commitment, structured questions may clarify the goal, boundary, acceptance, and irreversible authorization. Once the plan is written to the Task, execution becomes unattended: the agent no longer asks people to select ordinary implementation branches. It chooses the recommended direction by contract consistency, risk, reversibility, evidence strength, and total cost, resolves failures, and continues until the plan, verification gates, and Task archive are complete.
+
 ### Locate change in a four-layer world model
 
 ```text
@@ -99,6 +128,7 @@ Vision Spec ──extract target slice──> Epic Spec ──advance──> Iss
 | Project Spec | Which understandings and boundaries currently hold? | Current capabilities, long-lived constraints, shared language, architectural trade-offs |
 | Epic Spec | How is this bounded larger change progressing? | Living specification, current advance, blockers, graduation candidates |
 | Issue | What must this closeable evolution accomplish? | Goal, evidence, design, implementation, verification, and write-back |
+| Task | How does this run advance and recover? | Plan, batch progress, evidence index, completion, and atomic archive |
 
 The Project Spec is the **authoritative entry point** for current stable understanding, not unquestionable absolute truth. A user's newest confirmation takes precedence, and code or other evidence can show that a record is stale. On conflict, investigate and correct, preserve history, or explicitly change course—never silently let one overwrite the other.
 
@@ -112,7 +142,7 @@ Unknowns are normal. They should not be hidden by splitting work into tasks too 
 | How the current system reaches a result from a trigger | Current-state explanation / Explore | A causal model is sufficient for action and remaining unknowns are explicit |
 | Whether a future design can work | Spike | The highest-risk path has real evidence; if it fails, address the design first |
 
-Design does not write unread areas as settled conclusions. Do writes back small deviations; when a goal, boundary, or key design view no longer holds, it stops and returns to Design, Talk, or a new work item. **A change of course must be explicit.**
+Design does not write unread areas as settled conclusions. Do writes back small deviations; when a goal, boundary, or key design view no longer holds, it returns to Design, records the new course in the Task, and continues. **A change of course must be explicit and traceable.**
 
 ### Match management strength to the change
 
@@ -123,7 +153,7 @@ Design does not write unread areas as settled conclusions. Do writes back small 
 | Cross-module or multi-batch change with an evolving bounded specification | Epic Spec; clear slices may advance directly inside it or use Issues when useful |
 | Complex current path, conflicting evidence, or understanding worth reusing | Explore Issue |
 
-Management is not ceremony. A user can explicitly request no trace and omit `ff`; a user can also request tracking for work that looks small. Completing implementation is not closing work; closing requires user authorization, and it is not the same as moving something to `done/`.
+Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. The Task runtime ledger remains mandatory. Completing implementation is not closing work. An Issue or Epic closes only when authorization was obtained before Task creation; otherwise it stays open without another question. Task archive is the mechanical closure of every workflow, not the closing of an Issue or Epic or a move to `done/`.
 
 ### Graduate reusable understanding to the right layer
 
@@ -140,11 +170,15 @@ Closed Epic        → Project Spec, then check realization state in Vision
 
 The next round therefore reads usable current understanding rather than guessing what remains valid from old history.
 
-## Quality, implementation economy, and UI
+## How quality stays coherent
 
 CodeStable uses the nine product-quality characteristics of [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) as a shared vocabulary, not as a certification checklist. Only objectives that change design or acceptance are selected; once selected, Design must address them, Do must provide proportionate evidence, and Close can confirm them only on that evidence.
 
+## How implementation stays economical
+
 Implementation follows a **minimum sufficient change**: understand the real trigger-to-result path, prefer reuse at the correct responsibility boundary or removing and narrowing unnecessary work, and add new code last. A small diff placed beside the symptom is not economical if it belongs elsewhere.
+
+## How UI specs use visuals
 
 When spatial relationships, information hierarchy, or multi-state interaction change what a UI requirement means, Vision or the relevant Spec uses versionable ASCII wireframes, Mermaid, or another suitable diagram. Screenshots and high-fidelity designs can be evidence; they cannot be the only specification.
 
@@ -170,18 +204,23 @@ your-project/
     │   └── {NNN}-o|x-{name}/   # Explore: index.md and path articles
     ├── notes/                  # Reusable knowledge
     │   └── {NNN}-{name}.md
-    └── tools/                  # Stable tools for proven workflows
+    ├── tools/                  # Stable tools for proven workflows
+    └── tasks/                  # Runtime ledger for every posture
+        ├── active/{task}.md
+        └── archived/YYYY-MM-DD-NNN-{task}.md
 ```
+
+Lite uses a single-writer Task model and does not create locks, staging, tombstones, or conflicts directories. The runtime uses a SHA-256 stale-snapshot guard, publishes archives atomically without overwriting existing evidence, and leaves long-term history auditing to Git.
 
 - `NNN` increments independently within the issues, epics, notes, and talks trees. Items under `done/` count too.
 - Closing changes only `-o-` to `-x-`; the number and name remain unchanged.
 - A closed Issue or Epic moves to its `done/` subdirectory only when the user explicitly requests organization; it remains searchable.
-- A Talk is not written before the user confirms it. Vision target content, Epic closing, and dangerous operations also retain explicit human authorization.
+- A Talk is not written before plan commitment. Vision target content, Epic closing, and dangerous operations also retain explicit human authorization before commitment. Ordinary execution branches do not reopen confirmation after a Task starts.
 - A legacy `.cs/` workspace is never silently copied. After confirming migration, run `python skills/cs/scripts/init_codestable.py --migrate-legacy`; if both `.cs/` and `codestable/` exist, reconcile them manually first.
 
 ## People retain control of state transitions
 
-CodeStable does not replace engineering judgment with documents, and it does not treat human intervention as failure. Agents can search, implement, verify, and write back. People retain control of goals, consequential trade-offs, material costs, compatibility policy, closing, publishing, and dangerous operations.
+CodeStable does not replace engineering judgment with documents, and it does not treat pre-plan clarification as failure. Agents can search, implement, verify, repair, and write back. People retain control of goals, plan boundaries, closing, publishing, and dangerous operations. After plan commitment, the agent handles ordinary in-scope choices unattended instead of returning mechanical next steps to people.
 
 The aim is not to make AI run more steps automatically. It is to keep software understandable, verifiable, controllable, and evolvable as it encounters new facts.
 

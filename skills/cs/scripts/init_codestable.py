@@ -17,13 +17,25 @@ DIRS = [
     "codestable/epics",
     "codestable/notes",
     "codestable/tools",
+    "codestable/tasks/active",
+    "codestable/tasks/archived",
 ]
+
+
+def ensure_path_has_no_symlink(root: Path, target: Path) -> None:
+    relative_target = target.relative_to(root)
+    current_path = root
+    for path_component in relative_target.parts:
+        current_path = current_path / path_component
+        if current_path.is_symlink():
+            raise ValueError(f"CodeStable workspace path contains a symlink: {current_path}")
 
 
 def prepare_workspace(project: Path, migrate_legacy: bool) -> bool:
     workspace = project / WORKSPACE_DIR
     legacy_workspace = project / LEGACY_WORKSPACE_DIR
 
+    ensure_path_has_no_symlink(project, legacy_workspace)
     if not legacy_workspace.exists():
         return False
     if not legacy_workspace.is_dir():
@@ -43,12 +55,16 @@ def prepare_workspace(project: Path, migrate_legacy: bool) -> bool:
 
 def init_codestable(project: Path, force: bool, migrate_legacy: bool) -> int:
     project = project.resolve()
+    ensure_path_has_no_symlink(project, project / WORKSPACE_DIR)
     migrated_legacy = prepare_workspace(project, migrate_legacy)
     vision_template = (TEMPLATES / "vision-index.md").read_text(encoding="utf-8")
     project_spec_template = (TEMPLATES / "project-spec-index.md").read_text(encoding="utf-8")
 
     for rel in DIRS:
-        (project / rel).mkdir(parents=True, exist_ok=True)
+        directory_path = project / rel
+        ensure_path_has_no_symlink(project, directory_path)
+        directory_path.mkdir(parents=True, exist_ok=True)
+        ensure_path_has_no_symlink(project, directory_path)
 
     managed_indexes = [
         (project / WORKSPACE_DIR / "vision" / "index.md", vision_template),
@@ -58,10 +74,18 @@ def init_codestable(project: Path, force: bool, migrate_legacy: bool) -> int:
     kept: list[str] = []
 
     for index_path, template in managed_indexes:
+        ensure_path_has_no_symlink(project, index_path)
         if index_path.exists() and not force:
+            if not index_path.is_file():
+                raise ValueError(f"CodeStable canonical index is not a regular file: {index_path}")
             kept.append(str(index_path))
         else:
+            if index_path.exists() and not index_path.is_file():
+                raise ValueError(f"CodeStable canonical index is not a regular file: {index_path}")
             index_path.write_text(template, encoding="utf-8")
+            ensure_path_has_no_symlink(project, index_path)
+            if not index_path.is_file():
+                raise ValueError(f"CodeStable canonical index was not created safely: {index_path}")
             created.append(str(index_path))
 
     print(f"Initialized CodeStable workspace at {project / WORKSPACE_DIR}")

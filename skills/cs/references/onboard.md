@@ -1,5 +1,7 @@
 # Onboard：接入 CodeStable
 
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：完整 workspace 初始化前先由 Task runtime 按需创建 `codestable/tasks/`；初始化批次完成后更新并归档同一 Task。
+
 ## 背景
 
 Onboard 模式负责把 CodeStable 的本地工作区放进项目：创建 `codestable/`、基础实体目录，以及 vision / project spec 的主文档骨架。
@@ -10,9 +12,9 @@ Onboard 模式负责把 CodeStable 的本地工作区放进项目：创建 `code
 
 onboard 可以观察项目，但不能编项目。能从代码、README、配置、测试和 git 历史推断的，只能作为候选事实或下一步建议；业务目标、路线图、明确不做什么、用户故事和长期取舍，除非已有文档证据或用户确认，否则不要写进 `codestable/`。
 
-默认不覆盖已有文件。只有用户明确要求重置 `codestable/vision/index.md` 与 `codestable/spec/index.md` 时，才使用 `--force`，并在执行前再次确认覆盖这两个入口。
+默认不覆盖已有文件。只有用户在计划确定前明确要求重置 `codestable/vision/index.md` 与 `codestable/spec/index.md`，才把 `--force` 与覆盖范围写入 Task；Task 创建后按该授权执行，不再次确认。
 
-发现旧版 `.cs/` 工作区时，不能静默再创建 `codestable/`：先说明迁移会移动该目录，取得用户明确确认后才带 `--migrate-legacy` 运行初始化脚本。若两个目录同时存在，停止并让用户先决定如何整理，绝不猜测合并。
+发现旧版 `.cs/` 工作区时，不能静默再创建 `codestable/`：迁移授权必须在 Task 创建前收束，获授权后才带 `--migrate-legacy` 运行初始化脚本。若两个目录同时存在，视为无法安全自动合并的外部数据冲突：不移动或覆盖任一目录，在 Task 中记录 blocked 证据并结束可安全执行的检查，不在计划后要求用户选择路线，也不伪造初始化完成。
 
 ## 行动指南
 
@@ -37,6 +39,8 @@ python <cs-skill>/scripts/init_codestable.py --project .
 - `codestable/epics/`（某 Epic 首次建立所属 Issue 时再创建自己的 `issues/`）
 - `codestable/notes/`
 - `codestable/tools/`
+- `codestable/tasks/active/`
+- `codestable/tasks/archived/`
 
 `codestable/vision/index.md` 只是目标应用地图骨架，`codestable/spec/index.md` 只是当前项目真相骨架。Onboard 不替用户填写愿景或真实需求，不创建 issue、epic、note 或 tool 正文，不覆盖已有内容。已有项目缺少 Vision 时，重新运行脚本可以增量补齐，不影响原有 `codestable/` 内容。
 

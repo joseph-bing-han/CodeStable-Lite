@@ -54,6 +54,7 @@ def required_skill_files(root: Path) -> list[Path]:
         skill / "SKILL.md",
         skill / "agents/openai.yaml",
         skill / "scripts/init_codestable.py",
+        skill / "scripts/codestable_task_runtime.py",
     ]
     files.extend(
         skill / "references" / filename
@@ -74,6 +75,8 @@ def required_skill_files(root: Path) -> list[Path]:
             "quality.md",
             "spec.md",
             "talk.md",
+            "task.md",
+            "autonomy.md",
             "ui-spec.md",
             "vision.md",
         ]
@@ -90,6 +93,7 @@ def required_skill_files(root: Path) -> list[Path]:
             "project-spec-index.md",
             "spec-section-index.md",
             "talk.md",
+            "task.md",
             "tool.md",
             "vision-index.md",
             "vision-section-index.md",
@@ -149,10 +153,12 @@ def check_quality_contract(root: Path, findings: list[Finding]) -> None:
         findings.append(Finding(rel(skill_md, root), "does not route quality.md"))
 
     templates = skill / "templates/entities"
-    for filename in ["issue.md"]:
-        path = templates / filename
-        if path.is_file() and "## 质量目标\n" not in path.read_text(encoding="utf-8"):
-            findings.append(Finding(rel(path, root), "missing quality objective contract"))
+    issue_template = templates / "issue.md"
+    if issue_template.is_file():
+        issue_template_text = issue_template.read_text(encoding="utf-8")
+        quality_contract_markers = ("## 质量目标\n", "质量承诺")
+        if not any(marker in issue_template_text for marker in quality_contract_markers):
+            findings.append(Finding(rel(issue_template, root), "missing quality objective contract"))
 
 
 def check_economy_contract(root: Path, findings: list[Finding]) -> None:
@@ -169,12 +175,16 @@ def check_economy_contract(root: Path, findings: list[Finding]) -> None:
         findings.append(Finding(rel(skill_md, root), "does not route economy.md"))
 
     templates = skill / "templates/entities"
-    for filename in ["issue.md"]:
-        path = templates / filename
-        if path.is_file():
-            text = path.read_text(encoding="utf-8")
-            if "有界简化上限/触发/方向" not in text:
-                findings.append(Finding(rel(path, root), "missing bounded simplification contract"))
+    issue_template = templates / "issue.md"
+    if issue_template.is_file():
+        issue_template_text = issue_template.read_text(encoding="utf-8")
+        bounded_simplification_markers = ("有界简化上限/触发/方向", "有界简化")
+        if not any(
+            marker in issue_template_text for marker in bounded_simplification_markers
+        ):
+            findings.append(
+                Finding(rel(issue_template, root), "missing bounded simplification contract")
+            )
 
 
 def check_ui_spec_contract(root: Path, findings: list[Finding]) -> None:
@@ -191,17 +201,24 @@ def check_ui_spec_contract(root: Path, findings: list[Finding]) -> None:
         findings.append(Finding(rel(skill_md, root), "does not route ui-spec.md"))
 
     templates = skill / "templates/entities"
-    required_markers = {
-        "project-spec-index.md": "## 界面与交互（按需）",
-        "spec-section-index.md": "## 界面与交互（按需）",
-        "epic-spec.md": "## 界面与交互变化（按需）",
-        "talk.md": "## UI 对齐草图（按需）",
-        "issue.md": "## UI 变化 / 实际与预期（按需）",
+    required_marker_groups = {
+        "project-spec-index.md": ("## 界面与交互（按需）", "界面（当前已成立时）"),
+        "spec-section-index.md": ("## 界面与交互（按需）", "当前界面（若有）"),
+        "epic-spec.md": ("## 界面与交互变化（按需）", "UI 若影响理解"),
+        "talk.md": ("## UI 对齐草图（按需）", "UI 草图"),
+        "issue.md": ("## UI 变化 / 实际与预期（按需）", "UI 变化（若有）"),
     }
-    for filename, marker in required_markers.items():
+    for filename, marker_group in required_marker_groups.items():
         path = templates / filename
-        if path.is_file() and marker not in path.read_text(encoding="utf-8"):
-            findings.append(Finding(rel(path, root), f"missing UI visual contract: {marker}"))
+        if not path.is_file():
+            continue
+
+        template_text = path.read_text(encoding="utf-8")
+        if not any(marker in template_text for marker in marker_group):
+            expected_markers = " or ".join(marker_group)
+            findings.append(
+                Finding(rel(path, root), f"missing UI visual contract: {expected_markers}")
+            )
 
 
 def check_readmes(root: Path, findings: list[Finding]) -> None:
@@ -238,6 +255,164 @@ def check_readmes(root: Path, findings: list[Finding]) -> None:
                 findings.append(Finding(filename, f"obsolete plugin documentation remains: {marker}"))
 
 
+def check_task_contract(root: Path, findings: list[Finding]) -> None:
+    skill = root / "skills/cs"
+    required_markers = {
+        "SKILL.md": [
+            "全部姿态强制 Task 主线",
+            "创建或恢复 Task",
+            "每个可观察批次",
+            "原子归档",
+            "禁止再次 AskQuestion",
+        ],
+        "references/task.md": [
+            "Task List 是 source of truth",
+            "codestable/tasks/active/",
+            "codestable/tasks/archived/",
+            "陈旧快照保护",
+            "单写者模型",
+            "archive-pending-move",
+            "duplicate-task-state",
+            "`completed` 不是最终状态",
+        ],
+        "references/autonomy.md": [
+            "计划确定前",
+            "计划确定后",
+            "禁止再次调用 AskQuestion",
+            "自动选择推荐方向",
+            "可逆性",
+            "总成本",
+        ],
+    }
+    for relative_path, markers in required_markers.items():
+        path = skill / relative_path
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                findings.append(
+                    Finding(rel(path, root), f"missing mandatory Task contract: {marker}")
+                )
+
+    posture_references = [
+        "onboard.md",
+        "talk.md",
+        "vision.md",
+        "spec.md",
+        "explore.md",
+        "complain.md",
+        "design.md",
+        "fast.md",
+        "do.md",
+        "close.md",
+        "code-design.md",
+        "note.md",
+        "maketools.md",
+    ]
+    for filename in posture_references:
+        path = skill / "references" / filename
+        if path.is_file() and "[Task 主线](task.md)" not in path.read_text(encoding="utf-8"):
+            findings.append(Finding(rel(path, root), "does not inherit the mandatory Task spine"))
+
+    initialization_path = skill / "scripts/init_codestable.py"
+    if initialization_path.is_file():
+        initialization_text = initialization_path.read_text(encoding="utf-8")
+        for task_directory in [
+            "codestable/tasks/active",
+            "codestable/tasks/archived",
+        ]:
+            if task_directory not in initialization_text:
+                findings.append(
+                    Finding(
+                        rel(initialization_path, root),
+                        f"missing Task workspace directory: {task_directory}",
+                    )
+                )
+
+        for removed_task_directory in [
+            "codestable/tasks/tombstones",
+            "codestable/tasks/staging",
+            "codestable/tasks/conflicts",
+            "codestable/tasks/locks",
+        ]:
+            if removed_task_directory in initialization_text:
+                findings.append(
+                    Finding(
+                        rel(initialization_path, root),
+                        f"obsolete Task runtime directory remains: {removed_task_directory}",
+                    )
+                )
+
+    for filename in ["README.md", "README.en.md"]:
+        path = root / filename
+        if path.is_file():
+            text = path.read_text(encoding="utf-8")
+            for marker in ["tasks/", "Task", "archived"]:
+                if marker not in text:
+                    findings.append(Finding(filename, f"missing public Task contract: {marker}"))
+
+    forbidden_post_commit_phrases = {
+        "skills/cs/references/do.md": ["用户确认先通", "不通就停下等待用户"],
+        "skills/cs/templates/entities/ff-issue.md": ["待用户确认是否写入"],
+        "skills/cs/templates/entities/issue.md": ["须二次确认", "需要用户确认："],
+        "README.md": ["则停止并回到 Design、Talk 或新的事项"],
+    }
+    for relative_path, phrases in forbidden_post_commit_phrases.items():
+        path = root / relative_path
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for phrase in phrases:
+            if phrase in text:
+                findings.append(
+                    Finding(relative_path, f"reopens a post-commit human checkpoint: {phrase}")
+                )
+
+    runtime_path = skill / "scripts/codestable_task_runtime.py"
+    if runtime_path.is_file():
+        runtime_text = runtime_path.read_text(encoding="utf-8")
+        for obsolete_runtime_marker in [
+            "import fcntl",
+            "tombstone_root",
+            "staging_root",
+            "conflict_root",
+            "lock_root",
+        ]:
+            if obsolete_runtime_marker in runtime_text:
+                findings.append(
+                    Finding(
+                        rel(runtime_path, root),
+                        f"obsolete Task transaction mechanism remains: {obsolete_runtime_marker}",
+                    )
+                )
+
+
+def check_task_runtime_behavior(root: Path, findings: list[Finding]) -> None:
+    required_test_paths = (
+        root / "tests/test_task_runtime.py",
+        root / "tests/test_skill_contracts.py",
+    )
+    for test_path in required_test_paths:
+        if not test_path.is_file():
+            findings.append(Finding(rel(test_path, root), "Required repository test is missing"))
+            continue
+        test_result = subprocess.run(
+            ["python3", str(test_path)],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+        if test_result.returncode != 0:
+            failure_output = (test_result.stdout + test_result.stderr).strip()
+            findings.append(
+                Finding(
+                    rel(test_path, root),
+                    f"Repository behavior tests failed: {failure_output}",
+                )
+            )
+
+
 def check_repo(root: Path) -> list[Finding]:
     root = root.resolve()
     findings: list[Finding] = []
@@ -247,6 +422,8 @@ def check_repo(root: Path) -> list[Finding]:
     check_economy_contract(root, findings)
     check_ui_spec_contract(root, findings)
     check_readmes(root, findings)
+    check_task_contract(root, findings)
+    check_task_runtime_behavior(root, findings)
     if (root / "dist").exists():
         findings.append(Finding("dist", "temporary distribution output must not be committed"))
     return findings

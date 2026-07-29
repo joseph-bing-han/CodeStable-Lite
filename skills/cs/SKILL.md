@@ -1,8 +1,9 @@
 ---
 name: cs
 description: >
-  CodeStable：用 Vision / Project Spec / Epic / Issue 与 codestable/ 制度记忆理解和推进软件演化；按用户当前姿态行动——讨论、快改、受管理实现、修 bug、整理愿景/规格、理解现状、关闭收尾、按需 review。
-  触发：cs、CodeStable、讨论/先聊清楚、快速/快改/直接开干、穿刺、修 bug/debug、整理 vision/spec、关闭/收尾、review、这系统怎么工作，或项目已有 codestable/ 且正在处理愿景、规格、bug、实现与关闭。
+  CodeStable：一套软件演化理解（Vision/Project Spec/Epic/Issue + codestable/ 制度记忆），按用户当前姿态行动——讨论、快改、受管理实现、修 bug、整理愿景/规格、现状理解、关闭收尾、按需 review。
+  触发：cs、CodeStable、讨论/先聊清楚、快速/快改/直接开干、穿刺、修 bug/debug、整理 vision/spec、关闭/收尾、review、这系统怎么工作、项目已有 codestable/ 且在处理愿景规格 bug 实现关闭时。
+  调用 cs 不等于生成完整业务流水线：先判姿态再行动。完整初始化 codestable/ 须用户明确要求；强制 Task runtime 可按需创建 codestable/tasks/。
 ---
 
 # CodeStable
@@ -13,11 +14,34 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 ### 沟通方式：先结论，再展开
 
-先用用户正在使用的词，简短说明**结论和原因**。只有需要做取舍、取得授权，或必须展示验证与风险证据时，才展开框架、规则和细节。简短不等于省略关键判断，而是先让用户容易理解，再按需下钻。
+这里“不跑完整生命周期”只表示不强迫每个请求生成 Vision / Spec / Epic / Issue；**不豁免 Task 生命周期**。Task 是全部姿态共享的运行账本，不是另一套业务流程。
+
+### 沟通默认：先简单，后展开
+
+先用自然、简短的话说清**结论和原因**，优先使用用户正在使用的词；不要一上来抛框架、术语、章节或长清单。只有用户明确要求、需要做取舍/授权，或必须给出验证与风险证据时，才展开实现安排、规则与细节。简短不是省略关键判断：先让用户容易听懂，再按需下钻。
 
 ### 节省上下文（Codex）
 
 同一会话中，已经完整读取且没有变化的 `SKILL.md`、reference、template 或相邻说明，必须复用既有理解，不要重复读取。仅在用户要求重读、文件已变化，或当前理解不足以支撑判断时，读取相关最小范围。
+
+### 不预拆迷雾
+
+还不能精确表述的问题，不要为追踪而提前拆成 issue；先用 Talk、Explore 或穿刺把目标、现状或关键风险弄清，能说成可关闭行动后再建 issue 或 Epic。
+
+### 全部姿态强制 Task 主线
+
+先读 [Task 主线](references/task.md) 与 [计划后自治](references/autonomy.md)。尚不能形成目标与步骤时属于 intake，可以使用 AskQuestion 澄清；一旦计划足以开工，必须按以下顺序执行，**所有姿态无例外**：
+
+1. 扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task；
+2. 以 Task 正本同步 Agent 原生 Tasks，在当前 run 开始工作；
+3. 每个可观察批次完成后，先用 SHA-256 陈旧快照保护更新 Task，再继续下一批；
+4. 自动完成分析、设计、实现或只读交付、验证、必要 Review 与修复循环；
+5. 全部完成后把 Task 标记 completed，立即原子归档并 cleanup；
+6. 只有 archived 正本 schema 有效、active 同名文件不存在且 scan 无冲突，才能给出完成式最终答复。
+
+Task 不可被用户要求的无痕模式豁免。“不要 issue / 不写 ff / 只读 / 小改 / 只在对话回答”只影响业务实体和交付形式，不影响 Task 创建、更新、完成与归档。Task 自身操作更新当前 Task，不递归创建第二个 Task。
+
+计划写入 active Task 后即进入无人值守：禁止再次 AskQuestion，也不要求用户选择实现路线或批准普通下一步；出现分叉、失败或范围内偏差时，按 autonomy 的契约一致性、风险、可逆性、证据与总成本排序自动选择推荐方向，更新 Task 后持续执行到全部工作完成。
 
 ---
 
@@ -27,41 +51,41 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 | 主姿态 | 用户常这样说 | 必读 | 按需读 | 默认边界 |
 |---|---|---|---|---|
-| **接入** | 初始化 cs、接入 CodeStable、补齐 `codestable/` | [onboard](references/onboard.md) | — | 必须明确授权；不编造业务内容 |
-| **讨论** | 聊聊、先理清、想清楚再做、帮我规划一下 | [talk](references/talk.md) | [docs](references/docs.md)；具体变化 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 用户确认前不落盘，不建 issue、epic 或 vision |
-| **愿景** | 应用将来什么样、整理 vision、产品全景 | [vision](references/vision.md) | [docs](references/docs.md)；质量方向 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 确认后才写 vision；不强迫创建开发事项 |
-| **规格** | 维护 spec、当前真相、epic 活规格 | [spec](references/spec.md) | [docs](references/docs.md)；质量约束 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 只写仍然成立的结论 |
-| **理解现状** | 怎么工作的、这条链路、影响范围 | [explore](references/explore.md) | [docs](references/docs.md)；服务具体变化 → [quality](references/quality.md) | 先解释现状；复杂且值得复用时才建 Explore Issue |
-| **修 bug** | 坏了、不符合预期、debug、修这个 bug | [complain](references/complain.md) | [debug](references/debug.md)、[economy](references/economy.md)、[quality](references/quality.md)；结构 → [code-design](references/code-design.md) | 简单问题默认快改并留下 `ff`；复杂问题可受管理推进 |
-| **设计** | 怎么实现、先设计、实现方案 | [design](references/design.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 不写代码；高风险先安排穿刺顺序 |
-| **快交付** | 快速、快改、小改一下、直接开干、别走流程 | [fast](references/fast.md) | [economy](references/economy.md)；必要时 [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 默认轻检索、验证并留下 `ff`；用户明确不要痕迹时才可省略 `ff` |
-| **受管理实现** | 做这个 issue、推进 epic、实现（有档）、穿刺/先打通 | [do](references/do.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；现状不清 → [explore](references/explore.md)；UI → [ui-spec](references/ui-spec.md) | 完成不等于关闭；风险先穿刺，再加厚 |
-| **收尾** | 关闭、收尾、做完并沉淀、毕业回写 | [close](references/close.md) | [docs](references/docs.md)、[quality](references/quality.md)；有界简化 → [economy](references/economy.md) | 关闭需要用户授权；不自动移入 `done/` |
-| **审代码** | review、评审、看看这 diff/PR | [code-design](references/code-design.md)（文末 Review） | [economy](references/economy.md)；相关时 → [quality](references/quality.md) | 用户点名才做；默认只审不改 |
-| **记知识** | 记一下坑、写 note | [note](references/note.md) | [docs](references/docs.md) | 同主题更新原 note，不重复新建 |
-| **学流程** | 我带你跑一遍、教 AI 做某流程 | [maketools](references/maketools.md) | [docs](references/docs.md) | 危险操作前再次确认 |
+| **接入** | 初始化 cs、接入 CodeStable、补齐 `codestable/` | [onboard](references/onboard.md) | — | 须明确授权；不编造业务内容 |
+| **讨论** | 聊聊、先理清、想清楚再做、帮我规划一下 | [talk](references/talk.md) | [docs](references/docs.md)；具体变化 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 确认前不落盘、不建 issue/epic/vision |
+| **愿景** | 应用将来什么样、整理 vision、产品全景 | [vision](references/vision.md) | [docs](references/docs.md)；质量方向 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 确认后才写 vision；不强迫开开发事项 |
+| **规格** | 维护 spec、当前真相、epic 活规格 | [spec](references/spec.md) | [docs](references/docs.md)；质量约束 → [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 只写仍成立的结论 |
+| **理解现状** | 怎么工作的、这条链路、影响范围 | [explore](references/explore.md) | [docs](references/docs.md)；服务具体变化 → [quality](references/quality.md) | 先现状说明；值得复用再 Explore issue |
+| **修 bug** | 坏了、不符合预期、debug、修这个 bug | [complain](references/complain.md) | [debug](references/debug.md)、[economy](references/economy.md)、[quality](references/quality.md)；结构 → [code-design](references/code-design.md) | 简单默认快改落 `ff`；复杂可受管理 |
+| **设计** | 怎么实现、先设计、实现方案 | [design](references/design.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 不写代码；高风险标穿刺顺序 |
+| **快交付** | 快速、快改、小改一下、直接开干、别走流程 | [fast](references/fast.md) | [economy](references/economy.md)；必要时 [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 轻检索 + 验证；`ff` 可按用户要求省略，Task 永不省略 |
+| **受管理实现** | 做这个 issue、推进 epic、实现（有档）、穿刺/先打通 | [do](references/do.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；现状不清 → [explore](references/explore.md)；UI → [ui-spec](references/ui-spec.md) | 完成 ≠ 关闭；风险先穿刺再加厚 |
+| **收尾** | 关闭、收尾、做完并沉淀、毕业回写 | [close](references/close.md) | [docs](references/docs.md)、[quality](references/quality.md)；有界简化 → [economy](references/economy.md) | 须在 Task 创建前获得关闭授权；未授权保持 open 且不补问；**不**自动进 `done/` |
+| **审代码** | review、评审、看看这 diff/PR | [code-design](references/code-design.md)（文末 Review） | [economy](references/economy.md)；相关 → [quality](references/quality.md) | 用户点名才做；默认只审不改 |
+| **记知识** | 记一下坑、写 note | [note](references/note.md) | [docs](references/docs.md) | 同主题改原 note，不新建第二条 |
+| **学流程** | 我带你跑一遍、教 AI 做某流程 | [maketools](references/maketools.md) | [docs](references/docs.md) | 危险操作授权在 Task 创建前收束 |
 
 ### 怎样判断姿态
 
-1. 用户的原话与授权，优先于“看起来应该走重流程”。
-2. 事情小、目标清楚、用户要快且没有要求建档 → **快交付**。
-3. 目标模糊或取舍未定 → **讨论**；聊清后再切换到快交付、受管理实现、愿景等姿态。
-4. 已有常规 Issue，或用户点名 Issue / Epic → **受管理实现**，必要时先设计。
-5. 已有行为坏了 → **修 bug**；新增能力 → 快交付或受管理实现，不归入 Complain。
-6. 用户只问系统怎样工作 → **理解现状**，不要默认开始修改。
-7. 意图不清，而且选错会实质改变后续，例如是否建 Issue、是否改代码 → 给一句话推荐和理由，请用户选择；不要默认采用重流程。
-8. 写或修改 Agent 技能本身，不属于 CodeStable 的职责。
+1. **用户授权与原话优先**于“看起来该走重流程”。
+2. **小且明确、要快、未要求建档** → **快交付**（不是“先讨论一整轮”）。
+3. **目标糊、取舍未定** → **讨论**；聊清后再切快交付 / 受管理 / 愿景等。
+4. **已有常规 issue 或用户点名 issue/epic** → **受管理实现**（或先设计）。
+5. **坏的是已有行为** → **修 bug**；新能力 → 快交付或受管理，不是 complain。
+6. **只问怎么工作** → **理解现状**；不要默认开改。
+7. **意图不清且选错会实质改变后续**（例如会不会建 issue、会不会改代码）→ 仅在 Task 创建前用 AskQuestion 给一句推荐 + 理由；Task 创建后按 [计划后自治](references/autonomy.md) 自动择优。
+8. 写/改 **Agent 技能本身**仍由当前 `cs` 与同一 Task 负责完整生命周期；可读取相关技能编写规则辅助，但不得转移 owner、另建入口或另建 Task。
 
 ### 选择管理强度
 
 | 情况 | 默认选择 |
 |---|---|
-| 小、低风险、一次可完成，或用户明确要快 | **快改**；完成后留下 `ff`，见 [fast](references/fast.md) |
-| 用户明确不要痕迹或不要写 Issue | 可以不留 `ff`；若现有真相失效，仍须同步 spec 或标记漂移 |
-| 涉及范围取舍、多轮推进、交接、显著风险或长期质量承诺 | 建立**常规 Issue**：`type: feature\|bug\|chore\|refactor` |
-| 跨模块、多批次，且规格会在边界内持续演化 | 建立 **Epic**；边界足够清楚的切片可直接在 Epic 内推进 |
-| 技术、集成或迁移风险需要先证明可行 | 先做**穿刺**，见 [do](references/do.md)，再加厚实现 |
-| 用户明确要求管理或明确不要建档 | 服从用户选择 |
+| 小、一次做完、低风险，或用户要快 | **快改** → 必留 `ff`（[fast](references/fast.md)） |
+| 用户**明确**不要 issue / `ff` | 可无 `ff`；Task 仍强制创建、更新和归档；真相失效仍同步 spec 或标漂移 |
+| 范围取舍、多轮、交接、显著风险、长期质量承诺 | **常规 issue**（`issue.md`，`type: feature\|bug\|chore\|refactor`） |
+| 跨模块、多批、规格在边界内反复演化 | **Epic**；够清楚的切片可 epic 内直接推进 |
+| 技术/集成/迁移风险需先证明可通 | **穿刺**（[do](references/do.md) 手法）再加厚 |
+| 用户明确要管理 / 明确不要业务实体 | 服从其 Issue / `ff` 偏好；Task 账本不可豁免 |
 
 ---
 
@@ -91,37 +115,25 @@ CodeStable 的制度记忆统一存放在项目的 `codestable/` 下。
 
 ```text
 codestable/
-├── vision/                         目标世界、旅程与候选方向
-│   ├── index.md                    Vision 地图
-│   └── ...                         按旅程或能力展开
-├── spec/                           当前稳定真相
-│   ├── index.md                    Project Spec 地图
-│   └── ...                         按场景或能力展开
-├── epics/                          有界的大变化；本树独立编号
-│   ├── EEE-o|x-{Epic名}/
-│   │   ├── spec.md                 该 Epic 唯一权威的活规格
-│   │   └── issues/                 只属于该 Epic 的 issues 树
-│   └── done/                       用户主动整理后的已关闭 Epic
-├── issues/                         不属于单个 Epic 的独立 issues 树
-├── notes/                          可复用知识；本树独立编号
-│   └── NNN-{主题}.md
-├── talks/                          尚未落定的讨论；本树独立编号
-│   └── NNN-{议题}.md
-└── tools/                          稳定、可重复执行的流程工具
-    └── ...                         说明、脚本及其所需资源
+├── vision/  目标世界、旅程与候选方向
+├── spec/    当前稳定真相
+├── epics/   有界的大变化
+├── issues/  可关闭行动（含 ff 与 Explore）
+├── notes/   可复用知识
+├── talks/   尚未落定的讨论
+├── tools/   稳定、可执行的流程工具
+└── tasks/   全部姿态的 active / archived 运行账本
 ```
 
 根 `issues/` 与每个 Epic 内的 `issues/` 使用同一种结构，但各自独立编号：
 
-```text
-issues/
-├── NNN-o|x-{事项}.md               常规 Issue
-├── NNN-o|x-ff-{事项}.md            快改记录
-├── NNN-o|x-{探索名}/               Explore Issue
-│   ├── index.md                    认知地图、边界、结论与毕业位置
-│   └── *.md                        按「触发→结果」组织的路径文章
-└── done/                           可选整理区；仍参与检索和编号
-```
+| 实体 | 路径 | 回答什么 |
+|---|---|---|
+| **Vision** | `codestable/vision/` | 应用最终什么样、旅程与能力、候选/互斥方向 |
+| **Project Spec** | `codestable/spec/` | 现在仍然成立的项目真相（按场景/能力，不按代码目录） |
+| **Epic** | `codestable/epics/{NNN}-o\|x-{名}/spec.md` | 有界大变化：已定/仍变、可推进什么（活规格） |
+| **Issue** | `codestable/issues/{NNN}-o\|x-[{ff}-]{名}.md` 或 Explore 目录 | 可关闭行动；快改用 `ff` |
+| **Task** | `codestable/tasks/active/{task}.md`、`archived/YYYY-MM-DD-NNN-{task}.md` | 本次工作如何推进、恢复和原子闭环 |
 
 图中的 `o|x` 表示取 `o`（open）或 `x`（closed），不是路径中的字面字符。路径表达唯一归属：只属于一个 Epic 的事项进入该 Epic 的 `issues/`，其余留在根 `issues/`。常规 Issue 与 `ff` 是单文件；只有需要独立调查工作区的 Explore Issue 使用目录。Epic 的 `issues/` 在首个所属事项创建时再建立。
 
@@ -161,6 +173,11 @@ Issue 编号不是全局身份。引用 Epic Issue 时，必须给完整路径�
 | Talk / Note | `{NNN}-{名}.md`，不使用 `o`、`x` 或 `ff` |
 
 **归属由路径决定：**
+- 关闭：路径 `-o-` → `-x-`，序号与名称不变；`status: closed`。
+- 常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
+- **ff** 只四节：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design。
+- Talk：`codestable/talks/`；Note：`codestable/notes/`（同主题改原文件）；Tool：`codestable/tools/`。
+- Task 不参与 issues、epics、notes、talks 等实体编号树；Task archived 文件使用独立的每日三位序号。Task slug 使用小写英文短横线。启动短规则只进会注入的 `AGENTS.md` 或 `CLAUDE.md`（不两处重复）。**不建 `facts.md`。**
 
 - 只属于一个 Epic 的 Issue，必须进入该 Epic 的 `issues/`。
 - 不属于任何 Epic 的 Issue，留在根 `issues/`。
@@ -180,11 +197,11 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 | 写入位置 | 时机 |
 |---|---|
-| Vision 目标内容 | 用户确认愿景后；实现结论若要改变目标，必须再次确认 |
-| Vision 实现程度与链接 | Epic 关闭时，按已经发生的事实更新 |
-| Project Spec | 独立 Issue / Explore Issue 关闭毕业；Epic 关闭合并；快改使现有真相失效；或处于规格维护姿态 |
-| Epic Spec | 处于规格维护姿态；或 Epic 下的 Issue 关闭回写 |
-| Issue / Explore Issue / `ff` | 受管理推进时按归属写入对应 issues 树；快改完成后写入并关闭 `ff` |
+| Vision 目标内容 | 用户确认的愿景整理；实现结论要改目标时只在 Task 创建前确认，计划后记录差异并保持原目标 |
+| Vision 实现程度/链接 | Epic **关闭**时按事实 |
+| Project Spec | 独立 issue/Explore **关闭**毕业；Epic **关闭**合并；快改真相失效；规格姿态维护 |
+| Epic Spec | 规格姿态；epic 下 issue 关闭回写 |
+| Issue / ff | 受管理推进；快改完成后写/关 `ff` |
 
 出现冲突时，按 `用户最新确认 > 证据与代码 > 疑似过期的 spec` 判断。Epic 与 Vision 不一致时，先说明这是收窄实现还是修改目标，不要静默绕过。
 
@@ -192,17 +209,18 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 | 状态 | 含义 |
 |---|---|
-| **完成** | 实现和验证已经达到目标 |
-| **关闭** | 用户授权收尾：`o` → `x`，并完成毕业回写；Git 操作按关闭契约执行 |
-| **整理进 `done/`** | 用户主动要求后，将已关闭事项移入整理区；这不是关闭的默认步骤 |
+| **完成** | 实现与验证达成目标 |
+| **关闭** | 用户授权收尾：`o`→`x`、毕业回写；git 中可按契约 commit 相关文件 |
+| **整理进 done** | 仅用户主动要求时挪已 `-x-` 项；关闭/快改/会话结束**不自动**做；`done/` 仍参与检索 |
+| **Task 归档** | 每个 workflow 完成后的机械闭环；不等于关闭 Issue / Epic，也不需要二次授权 |
 
 | 用户动作或场景 | 默认行为 |
 |---|---|
-| 快改 | 验证后必须写 `ff`，也可以直接写成 `x-ff`；不自动 commit 或 push |
-| 受管理实现 | 推进到完成即可；不自动关闭 Issue，也不自动 commit 或 push |
-| 用户说“做完”或“修好” | 完成实现与验证；小改仍留下 `ff`，除非用户明确不要痕迹；常规 Issue 不自动关闭 |
-| 用户说“关闭”或“收尾” | 执行 [close](references/close.md)；不自动移入 `done/` |
-| push、部署、初始化或覆盖 `codestable/`、关闭 Epic、破坏性操作 | 必须取得明确授权 |
+| 快改 | 验证后默认写 `ff`（或直接 `x-ff`）；用户可省略 `ff`，但 Task 必须归档；不自动 commit/push |
+| 受管理实现 | 完成即可；**不**自动关闭 issue；不 commit/push |
+| 用户说做完/修好 | 完成验证；小改仍落 `ff`（除非不要痕迹）；常规 issue 不自动关 |
+| 用户说关闭/收尾 | [close](references/close.md)；不自动进 `done/` |
+| push / 部署 / 初始化或覆盖 `codestable/` / 关 epic / 破坏性操作 | **必须**明确授权 |
 
 毕业方向：
 
@@ -223,13 +241,14 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 3. 开工协议
 
-在设计、实现、快改、修 bug、维护规格或穿刺之前，如果项目已有 `codestable/`，先完成以下动作。各 reference 不再重复展开这套协议。
+任何姿态结束 intake、准备 substantive work 时，先创建或恢复 Task；Task runtime 可按需只创建 `codestable/tasks/`，不以完整 onboard 作为前置。随后若项目已有其余 `codestable/` 内容，再做本协议（各 reference 不重复展开）：
 
-1. **浏览路径并检索关键词。** 扫描 `codestable/` 的结构与当前主题；同一会话中已经扫描且没有新写入时，复用已有结果。
-2. **按权重深入读取。** 先读 `spec/`，再读相关 Epic 与 Notes，然后递归检索根目录和各 Epic 的 issues 树，包括 `-x-`、`ff` 与 `done/`；最后按需读取 Talks、Vision 和 Tools。
-3. **判断现状是否足够。** 能否用一句话说明“触发如何经过系统产生结果”？不能则先做现状说明；跨多个边界或理解值得复用时，再建立 Explore Issue。
-4. **选择管理强度。** 按前文“选择管理强度”执行。
-5. **处理文档与代码冲突。** 先核对证据，再修正真相；不要用代码静默覆盖已记录的取舍，也不要盲信可能过期的文档。
+1. **Task gate**：直接扫描文件系统；恢复匹配 active Task，或用 runtime 创建新 Task；同步 Agent 原生 Tasks。
+2. **扫 `codestable/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
+3. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
+4. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → Explore issue。
+5. **管理强度**：见上文表。管理强度只决定业务实体厚度，不影响 Task。
+6. 与代码冲突：先核对证据，再改真相——不静默用代码盖掉已记录取舍，也不盲信过期文档。
 
 有目标 Issue 时，确认正在处理的是其**当前版本**；在 Epic 下工作时，读取该 Epic 的 `spec.md`。
 
@@ -239,13 +258,12 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 4. 授权边界
 
-这些边界适用于所有姿态：
-
-- 方向已经确认且用户要求执行时，持续推进到**完成**或遇到真实阻塞，不要在正常步骤之间反复确认。
-- 用户确认前，讨论不落盘；设计不写代码。
-- 完成不等于关闭，关闭不等于进入 `done/`。
-- 实现或快改后，不自动 Review，也不自动 push。
-- 初始化 `codestable/`、覆盖入口文件、关闭 Epic、危险操作、推送和部署，都必须取得明确授权。
+- 方向已确认且用户要求执行 → 创建 Task 并进入无人值守，推进到**完成并归档 Task**；不在任何普通步骤、方案分叉或失败修复间反复确认。
+- 确认前：讨论不落盘；设计不写代码。
+- 计划确定后：禁止再次 AskQuestion；按 [计划后自治](references/autonomy.md) 自动选择推荐方向并持续执行。
+- 完成 ≠ 关闭；关闭 ≠ `done/`；Task 归档 ≠ 关闭业务实体。实现/快改后只执行风险需要的 Review，**不**自动 push。
+- 初始化 `codestable/`、覆盖入口、关 epic、危险操作、推送、部署：须明确授权。
+- 未在计划确定前获授权的不可逆动作不纳入计划；选择非破坏性方向完成其余目标，不在执行中再次询问。
 
 ---
 
@@ -253,11 +271,12 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 | 文件 | 何时读取 |
 |---|---|
-| [quality](references/quality.md) | 讨论、设计、实现或关闭具体变化；处理质量相关 bug；在 spec 中记录质量约束 |
-| [economy](references/economy.md) | 设计、实现或修 bug 时做取舍；关闭时发现可以进行有界简化 |
-| [code-design](references/code-design.md) | 设计、受管理实现或结构问题；进行 Review 时必须读取全文，包括文末 Review 部分 |
-| [ui-spec](references/ui-spec.md) | 处理 UI 空间关系、信息层级与多状态 |
-| [docs](references/docs.md) | 编写或重组 Vision、Spec、Explore、Note、Talk 等文档 |
-| [debug](references/debug.md) | 修 bug 需要升级到慢路径时 |
+| [task](references/task.md) / [autonomy](references/autonomy.md) | 全部姿态结束 intake 后必读；不按场景省略 |
+| [quality](references/quality.md) | 具体变化的讨论/设计/实现/关闭；质量相关 bug；spec 记约束 |
+| [economy](references/economy.md) | 设计/实现/修 bug 取舍；关闭时发现有界简化 |
+| [code-design](references/code-design.md) | 设计/受管理实现/结构问题；**Review 必读（含文末）** |
+| [ui-spec](references/ui-spec.md) | UI 空间关系、信息层级、多状态 |
+| [docs](references/docs.md) | 写或重组 vision/spec/explore/notes/talk 等文档 |
+| [debug](references/debug.md) | 修 bug 升级慢路径时 |
 
-实体模板位于 `templates/entities/`，包括 `issue.md`、`ff-issue.md` 以及 Explore、Vision、Spec、Talk、Note 等模板。初始化脚本是 `scripts/init_codestable.py`。产物格式以相应 reference 为准，不要只根据文件名猜测。
+模板：`templates/entities/`（`task.md`、`issue.md`、`ff-issue.md`、explore/vision/spec/talk/notes…）。初始化：`scripts/init_codestable.py`；Task runtime：`scripts/codestable_task_runtime.py`。产物格式以各 reference 为准，勿凭文件名猜。
