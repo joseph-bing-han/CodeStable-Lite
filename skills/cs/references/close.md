@@ -4,7 +4,7 @@
 
 **关闭 ≠ 完成。** 完成指实现与验证已达成目标；关闭须用户授权收尾（“关闭 / 收尾 / 做完并沉淀”等）。Git 契约见下与 `SKILL.md`。
 
-**关闭 ≠ 整理进 `done/`。** 关闭只做 `o`→`x` 与毕业回写；把已完成项挪到 `issues/done/` 或 `epics/done/` 仅在用户主动要求整理时进行（见 `SKILL.md`「完成 · 关闭 · done」）。
+**关闭 ≠ 整理进 `done/`。** 关闭只做 `o`→`x` 与毕业回写；把已完成项挪到其所属 issues 树的 `done/`，或把 Epic 挪到 `epics/done/`，仅在用户主动要求整理时进行（见 `SKILL.md`「完成 · 关闭 · done」）。
 
 ## 背景
 
@@ -38,31 +38,33 @@
 
 ### 读取关闭上下文
 
-- issue：用户给路径则读该文件/目录；否则在 `codestable/issues/` 按 `NNN-o-…` / 名称搜索
-- epic：读权威 `spec.md`、明确引用的相邻材料与相关 issue
+- issue：用户给路径则读该文件/目录；否则递归搜索根 `codestable/issues/` 与各 Epic 的 `issues/`，按名称、完整路径或 `Epic NNN / Issue NNN` 消歧
+- epic：读权威 `spec.md`、同目录 `issues/`、明确引用的相邻材料；旧版根 issues 中带该 epic 关联的事项也要检索
 
 写入或暂存前确认目标事项、将回写的 spec/notes/Agent 指令/tools、以及要提交代码的当前版本。
 
 ### 关闭 issue
 
-路径规则：把文件名或目录名中的 **`-o-` 改为 `-x-`**，保留 `NNN`、可选的 `ff`、名称不变。例如 `012-o-fix-login.md` → `012-x-fix-login.md`；`015-o-ff-toolbar.md` → `015-x-ff-toolbar.md`；Explore 目录 `003-o-auth-flow/` → `003-x-auth-flow/`。
+若目标是旧版根 `issues/` 中仍 open、但通过 `epic` frontmatter 归属某 Epic 的 Issue，先按 `SKILL.md` 迁移约定移入该 Epic 的 `issues/` 并更新明确引用，再关闭；已关闭历史项不为整理目录而迁移。
+
+路径规则：只把目标 Issue 文件名或目录名中的 **`-o-` 改为 `-x-`**，保留 `NNN`、可选的 `ff`、名称与所属 issues 树不变。例如 `012-o-fix-login.md` → `012-x-fix-login.md`；Epic 内 `issues/015-o-ff-toolbar.md` → `issues/015-x-ff-toolbar.md`；Explore 目录 `issues/003-o-auth-flow/` → `issues/003-x-auth-flow/`。不要因关闭子 Issue 改 Epic 目录状态。
 
 - **普通 issue**：检查目标、范围、质量目标、执行记录与验证；有界简化则检查上限/触发/方向。缺记录或证据 → 回 Design/Do。
 - **ff issue**：检查四答是否齐全（做了什么 / 改了哪些 / 验证 / 对 `codestable/` 的影响）。真相失效须已同步 spec 或明确标漂移；不要求完整质量清单与实现设计。同会话快改已直接落 `x-ff` 的，无需再关一次。
 - **Explore issue**：不要求业务代码执行记录。须能讲清触发—过程—结果，相关责任/数据/状态有证据，未知显式标出；有具体变化时影响已分层。未达“足够行动” → 继续探索，不进 Do。
 
-按 `epic` frontmatter / 归属回写：
+按物理归属回写；路径是权威来源，旧版 `epic` frontmatter 只用于识别并迁移 open 事项、读取已关闭历史：
 
 - `type: ff`：默认不强制大段毕业；按「对 `codestable/` 的影响」执行或确认；坑点可进 notes
-- `epic` 空且非 ff：稳定结论 → project spec
-- `type: explore`：用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore 入口写清材料迁入位置
-- `epic` 有目录：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
+- 根 issues 下且无旧版 epic 关联：稳定结论 → project spec
+- `type: explore`：独立 Explore 经用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；Epic 内 Explore 先回写所属 epic spec；影响分析留 `related_issue`；证据与已排除理解留 Explore issue
+- Epic 的 `issues/` 下：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
 
 坑点 → notes；启动短规则 → `AGENTS.md` / `CLAUDE.md`；稳定工具 → tools。
 
 ### 关闭 epic
 
-仅用户明确要求时。确认：关闭条件满足；epic 内直接推进已有足够验证；相关 issue 已关或明确废弃/移出；质量约束有证据或保留为后续约束；毕业候选足够稳定。
+仅用户明确要求时。确认：关闭条件满足；epic 内直接推进已有足够验证；同目录 `issues/` 中的事项已关或明确废弃/移出；旧版仍在根 issues 下关联该 Epic 的事项也已处理；质量约束有证据或保留为后续约束；毕业候选足够稳定。
 
 先把 Epic 的稳定成果整理进 `codestable/spec/` 的合适层级，再关闭 Epic。整理时至少回答：当前系统新增或改变了什么能力、它怎样工作、关键责任/数据或状态边界是什么、后续变化必须遵守什么约束、哪些范围仍不属于它。Project Spec 的正文必须让只读当前规格的人理解这些结论；不要用“详见 Epic”代替内容，也不要原样搬运 issue 列表、实施过程或测试流水。
 
@@ -72,7 +74,7 @@
 - 已关闭 Epic 中仍有价值的内容只保留为设计历史、验证证据、被排除方案或更细的背景，不再是当前真相的唯一出处。
 - Project Spec 没有遗留与实现冲突的旧表述；活跃但尚未关闭的其他 Epic 不被误写成已毕业的稳定契约。
 
-确认上述回写后，epic `spec.md` 标 `closed` 并记录 Project Spec 中的具体合并章节；目录名 `-o-` → `-x-`（序号与名称不变）。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
+确认上述回写后，epic `spec.md` 标 `closed` 并记录 Project Spec 中的具体合并章节；Epic 目录名 `-o-` → `-x-`（序号与名称不变），内部 `issues/` 整体随目录保留，不重编号、不因 Epic 关闭改子 Issue 状态。有来源 Vision 则按事实更新实现程度与链接；改目标内容须确认。
 
 ### 提交关闭变更
 

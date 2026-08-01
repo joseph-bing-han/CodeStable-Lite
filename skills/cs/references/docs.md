@@ -26,7 +26,7 @@ CodeStable 里的 vision spec、project spec、epic spec、探索型 issue、`no
 
 **可停靠阅读。** 易读性不是把术语换得更口语，而是让读者在每一层都能带着足够理解停下。入口先回答“现在有什么、能做什么”；能力页回答“它怎样帮人完成一件事”；契约页才回答“修改时哪些规则不能破”；Epic、Issue 和证据回答“为什么这样做、怎样验证过”。读者不该为了懂一个能力是什么，先读实现契约或已关闭 Epic。
 
-**信息分层。** 目标世界、当前真相、候选理解、活规格边界、历史过程和操作经验不能混在一起。vision spec 放跨 Epic 的目标应用全景、候选和互斥方向；project spec 放当前主线真相；epic spec 放有边界变化的当前理解；Explore issue 放未关闭的现状模型和证据；`issues/`、`epics/` 用 `NNN-o|x[-ff]-名称`（epic 为目录 + `spec.md`）；`notes/`、`talks/` 用扁平 `NNN-名称`；均无日期目录。已完成且用户主动整理时可进各自 `done/` 子目录（仍参与检索，不叫 archive）。小改默认落 `ff` issue；仅用户明确不要痕迹时可不建 issue。写入口与命名见 `SKILL.md`。
+**信息分层。** 目标世界、当前真相、候选理解、活规格边界、历史过程和操作经验不能混在一起。vision spec 放跨 Epic 的目标应用全景、候选和互斥方向；project spec 放当前主线真相；epic spec 放有边界变化的当前理解；Explore issue 放未关闭的现状模型和证据。独立 Issue 位于根 `issues/`，只属于一个 Epic 的 Issue 位于该 Epic 的 `issues/`；两者都用 `NNN-o|x[-ff]-名称`，每棵 issues 树独立编号。Epic 用目录 `NNN-o|x-名称` + `spec.md`；`notes/`、`talks/` 用扁平 `NNN-名称`；均无日期目录。已完成且用户主动整理时可进所属树的 `done/` 子目录（仍参与检索，不叫 archive）。小改默认按归属落 `ff` issue；仅用户明确不要痕迹时可不建 issue。写入口与命名见 `SKILL.md`。
 
 **第一性原理。** 先回到这个文档要解决的最小本质问题：读者为什么需要它，系统必须守住什么约束，哪些概念不可再拆。不要从已有文件、模板或术语出发堆结构。
 

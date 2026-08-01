@@ -4,7 +4,6 @@ title: "[标题]"
 type: feature
 status: open
 created: YYYY-MM-DD
-epic: ""
 ---
 
 <!--
@@ -27,7 +26,7 @@ type: feature | bug | chore | refactor
 
 **范围：** 包含…；不包含…
 
-**归属：** 独立 / epic `…`；相关 vision/spec（按需）
+**归属：** 由文件位置表达；这里按需链接相关 vision/spec，不重复声明 Epic
 
 ## 为什么现在做 / 当前坏在哪
 

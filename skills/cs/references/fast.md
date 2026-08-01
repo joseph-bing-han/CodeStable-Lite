@@ -20,9 +20,10 @@
 
 见 `SKILL.md`「命名与序号」：
 
-- 进行中：`codestable/issues/{NNN}-o-ff-{名称}.md`
-- 已完成：`codestable/issues/{NNN}-x-ff-{名称}.md`
-- `NNN` = 已有最大序号 + 1（至少三位）
+- 独立快改：`codestable/issues/{NNN}-o|x-ff-{名称}.md`
+- Epic 快改：`codestable/epics/{epic}/issues/{NNN}-o|x-ff-{名称}.md`
+- 只在改动明确推进某个 Epic 边界时挂入该 Epic；否则留根 issues，不因代码路径碰巧相邻而挂靠
+- `NNN` = 所属 issues 树（含 `done/`）已有最大序号 + 1（至少三位）
 - 模板：`templates/entities/ff-issue.md`，`type: ff`（四答自检，非四节空槽）
 
 ## 行动指南
@@ -31,7 +32,7 @@
 
 对整个 `codestable/` 做路径浏览 + 关键词 grep，再按命中深读（协议见 `SKILL.md`「开工协议」）：
 
-1. **这块以前栽过吗？** → `notes/`、issues（含 `-x-` 与历史 `ff`）
+1. **这块以前栽过吗？** → `notes/`、递归检索根与各 Epic 的 issues（含 `-x-`、`done/` 与历史 `ff`）
 2. **有没有已拍板的写法/边界？** → **project spec**（重中之重）+ 相关 epic spec
 
 本会话同主题已扫过且无新写入可复用。没命中按自己判断写很正常。
@@ -51,10 +52,10 @@
 
 ### 4. 回写 `ff` issue（必做，除非用户明确不要痕迹）
 
-从用户请求抽 2–4 词英文短横线作 `{名称}`。取下一 `NNN`。
+先判断归属，再从用户请求抽 2–4 词英文短横线作 `{名称}`，并在所属 issues 树取下一 `NNN`。明确推进某 Epic 的写入该 Epic 的 `issues/`；其余写根 `codestable/issues/`。
 
-同会话已完成：直接写 `codestable/issues/{NNN}-x-ff-{名称}.md`，`status: closed`。
-需跨会话：先 `NNN-o-ff-...`，完成后再改名为 `NNN-x-ff-...`。
+同会话已完成：直接在所属树写 `{NNN}-x-ff-{名称}.md`，`status: closed`。
+需跨会话：先 `{NNN}-o-ff-...`，完成后在同一树改名为 `{NNN}-x-ff-...`。
 
 正文只填：
 

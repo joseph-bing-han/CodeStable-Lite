@@ -6,27 +6,20 @@ description: >
   调用 cs 不等于跑完整流程：先判姿态再行动。仅用户明确要求时才初始化 codestable/。
 ---
 
-# cs — CodeStable
 
 CodeStable 是**软件演化的理解方式**，不是强制流水线，也不是 Agent 编排器。
 
-- **理解（世界模型）**：目标世界 / 当前真相 / 有界大变化 / 可关闭行动，记在 `codestable/`
-- **姿态（用户此刻要什么）**：讨论、快交付、受管理推进、修坏的、维护规格……
-- **手法**：现状说明、穿刺、Review——挂在姿态里，不单独占入口
 
-**调用本技能 ≠ 跑完整生命周期。** 先定姿态，再只读该姿态需要的 reference；同一会话可换姿态，**不必**向用户宣布“进入某模式”。
 
-### 沟通默认：先简单，后展开
+
+### 沟通技巧：先简单，再展开
 
 先用自然、简短的话说清**结论和原因**，优先使用用户正在使用的词；不要一上来抛框架、术语、章节或长清单。只有用户明确要求、需要做取舍/授权，或必须给出验证与风险证据时，才展开实现安排、规则与细节。简短不是省略关键判断：先让用户容易听懂，再按需下钻。
 
 ### 节省上下文（Codex）
 
-同一会话中，已经完整读取且没有被改动的 `SKILL.md`、reference、template 或相邻说明，**必须复用既有理解，不要重复读取**。只有用户明确要求重读、文件在本会话中被改动，或现有理解不足以支撑当前判断时，才读取相关最小范围。
+同一会话中，如果已经完整读取且没有被改动的 `SKILL.md`、reference、template 或相邻说明，**必须复用既有理解，不要重复读取**。只有用户明确要求重读、文件在本会话中被改动，或现有理解不足以支撑当前判断时，才读取相关最小范围。
 
-### 不预拆迷雾
-
-还不能精确表述的问题，不要为追踪而提前拆成 issue；先用 Talk、Explore 或穿刺把目标、现状或关键风险弄清，能说成可关闭行动后再建 issue 或 Epic。
 
 ---
 
@@ -74,10 +67,12 @@ CodeStable 是**软件演化的理解方式**，不是强制流水线，也不�
 
 ---
 
-## 2. 世界模型（薄）
+## 2. 世界模型
+
+
 
 ```text
-Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff 快改痕迹）
+Vision Spec ──摘取──> Epic Spec ──推进──> Issues
      │                    │                    │
      │                    └──关闭毕业───────────┤
      └──目标世界              Project Spec（当前现实）
@@ -85,12 +80,17 @@ Vision Spec ──摘取──> Epic Spec ──推进──> Issues（含 ff �
 
 ### `codestable/` 工作区地图
 
+**目录规定**：CodeStable的体系的文件都记录在 `codestable/`中。
+
 ```text
 codestable/
 ├── vision/  目标世界、旅程与候选方向
 ├── spec/    当前稳定真相
 ├── epics/   有界的大变化
-├── issues/  可关闭行动（含 ff 与 Explore）
+│   └── NNN-o|x-名称/
+│       ├── spec.md
+│       └── issues/  归属于该 Epic 的行动
+├── issues/  不属于 Epic 的独立行动
 ├── notes/   可复用知识
 ├── talks/   尚未落定的讨论
 └── tools/   稳定、可执行的流程工具
@@ -102,25 +102,29 @@ codestable/
 |---|---|---|
 | **Vision** | `codestable/vision/` | 应用最终什么样、旅程与能力、候选/互斥方向 |
 | **Project Spec** | `codestable/spec/` | 现在仍然成立的项目真相（按场景/能力，不按代码目录） |
-| **Epic** | `codestable/epics/{NNN}-o\|x-{名}/spec.md` | 有界大变化：已定/仍变、可推进什么（活规格） |
-| **Issue** | `codestable/issues/{NNN}-o\|x-[{ff}-]{名}.md` 或 Explore 目录 | 可关闭行动；快改用 `ff` |
+| **Epic** | `codestable/epics/{NNN}-o\|x-{名}/spec.md`，所属事项在同目录 `issues/` | 有界大变化：已定/仍变、可推进什么（活规格） |
+| **Issue** | 独立：`codestable/issues/...`；Epic 所属：`codestable/epics/{epic}/issues/...` | 可关闭行动；物理位置表达唯一归属；快改用 `ff` |
 
 **为何分层：** 只靠 issue 会丢方向；只靠当前 spec 安放不了互斥构想；全塞进 project spec 分不清“现在”和“以后”；巨型 issue 关不掉。只把**值得跨会话**的信息写入 `codestable/`。
 
 ### 命名与序号（契约）
 
-各树（issues / epics / notes / talks，**含 `done/`**）内 `NNN` **独立**：最大开头数字 + 1；至少三位，过 999 为 `1000`…，无上限。
+每棵编号树内 `NNN` **独立**：根 `issues/`、每个 Epic 的 `issues/`、`epics/`、`notes/`、`talks/` 分别取本树（**含 `done/`**）最大开头数字 + 1；至少三位，过 999 为 `1000`…，无上限。Issue 编号不是全局身份；引用 Epic Issue 时必须给完整路径或写成 `Epic NNN / Issue NNN`。
 
 | 形态 | 路径 |
 |---|---|
-| Issue 进行中 / 已关 | `{NNN}-o-{名}.md` / `{NNN}-x-{名}.md` |
-| 快改 | `{NNN}-o\|x-ff-{名}.md`，`type: ff`，模板 `ff-issue.md` |
-| Explore | `{NNN}-o\|x-{名}/` + `index.md` |
-| Epic | `{NNN}-o\|x-{名}/spec.md`（每 epic 仅一份权威 spec） |
-| 已整理 | `issues/done/`、`epics/done/` 下同名；**关闭不自动挪** |
+| 独立 Issue | `codestable/issues/{NNN}-o\|x-{名}.md` |
+| Epic Issue | `codestable/epics/{EEE}-o\|x-{epic}/issues/{NNN}-o\|x-{名}.md` |
+| 快改 | 所属 issues 树下 `{NNN}-o\|x-ff-{名}.md`，`type: ff`，模板 `ff-issue.md` |
+| Explore | 所属 issues 树下 `{NNN}-o\|x-{名}/index.md` |
+| Epic | `codestable/epics/{NNN}-o\|x-{名}/spec.md`（每 epic 仅一份权威 spec；首个所属 Issue 创建时再建 `issues/`） |
+| 已整理 | 对应 issues 树的 `done/`，或 `epics/done/` 下同名；**关闭不自动挪** |
 | Talk / Note | `{NNN}-{名}.md`（无 `o/x/ff`） |
 
-- 关闭：路径 `-o-` → `-x-`，序号与名称不变；`status: closed`。
+- 关闭：目标 Issue 自身路径 `-o-` → `-x-`，序号与名称不变；关闭 Epic 时只改 Epic 目录名，内部 Issue 随目录保留；`status: closed`。
+- **归属决定位置**：只属于一个 Epic 的 Issue 必须进该 Epic 的 `issues/`；不属于 Epic 的留根 `issues/`；跨多个 Epic 时不得任选一个挂靠，应留独立 Issue 或升为 Epic。
+- `ff`、bug、feature、chore、refactor、Explore 均按同一归属规则放置。新建 Issue 不再靠 `epic` frontmatter 表达归属，路径是权威来源；归属改变时移动原事项并更新明确引用，不复制第二份。
+- 旧版位于根 `issues/` 且用 `epic` frontmatter 关联的**已关闭** Issue 保持有效，不自动迁移；仍在推进的旧 Issue 下次实质更新时移入所属 Epic，优先保留原编号，冲突时取该 Epic issues 树下一号，并更新明确引用。
 - 常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
 - **ff** 只答四件事：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design 与空槽位。
 - Talk：`codestable/talks/`；Note：`codestable/notes/`（同主题改原文件）；Tool：`codestable/tools/`。
@@ -134,7 +138,7 @@ codestable/
 | Vision 实现程度/链接 | Epic **关闭**时按事实 |
 | Project Spec | 独立 issue/Explore **关闭**毕业；Epic **关闭**合并；快改真相失效；规格姿态维护 |
 | Epic Spec | 规格姿态；epic 下 issue 关闭回写 |
-| Issue / ff | 受管理推进；快改完成后写/关 `ff` |
+| Issue / ff | 受管理推进；按归属写入根或 Epic 的 issues 树；快改完成后写/关 `ff` |
 
 冲突：`用户最新确认 > 证据/代码 > 疑似过期 spec`；Epic 与 Vision 不一致时先说明是收窄实现还是改目标，不静默绕过。
 
@@ -167,7 +171,7 @@ ISO/IEC 25010:2023 九特征作统一语言，**不是**九项必填表。**选�
 在**设计、实现、快改、修 bug、维护规格、穿刺**前，若项目有 `codestable/`，先做本协议（各 reference 不重复展开）：
 
 1. **扫 `codestable/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
-2. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
+2. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → 递归检索根与各 Epic 的 issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
 3. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → Explore issue。
 4. **管理强度**：见上文表。
 5. 与代码冲突：先核对证据，再改真相——不静默用代码盖掉已记录取舍，也不盲信过期文档。
@@ -187,7 +191,9 @@ ISO/IEC 25010:2023 九特征作统一语言，**不是**九项必填表。**选�
 
 ---
 
-## 5. 原则文件何时加读
+## 5. 原则文件
+
+原则文件可以帮你更好地执行任务。
 
 | 文件 | 何时 |
 |---|---|

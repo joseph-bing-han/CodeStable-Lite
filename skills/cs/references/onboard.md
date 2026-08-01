@@ -33,8 +33,8 @@ python <cs-skill>/scripts/init_codestable.py --project .
 - `codestable/talks/`
 - `codestable/vision/`
 - `codestable/spec/`
-- `codestable/issues/`
-- `codestable/epics/`
+- `codestable/issues/`（独立 Issue）
+- `codestable/epics/`（某 Epic 首次建立所属 Issue 时再创建自己的 `issues/`）
 - `codestable/notes/`
 - `codestable/tools/`
 

@@ -35,13 +35,13 @@
 
 ### 锁定目标与管理方式
 
-- 用户给出 issue 或要求实现某 issue → 确认当前版本，**受管理**推进（路径形如 `NNN-o-名称`）
+- 用户给出 issue 或要求实现某 issue → 确认完整路径与当前版本，**受管理**推进（独立或 Epic 所属均可）
 - 已在明确 issue 上下文中 → 延续，不重复选择
 - 用户要快 / 快速 / 直接开干，或目标小且一次可做完 → **[fast](fast.md)**
 - 用户明确不要痕迹 → 实现验证即可，不写 `ff`；仍跑开工协议与验证
 - 只在讨论、是否改动不清 → Talk，或一句带推荐确认快改 vs 受管理
 
-不要仅因仓库存在 `codestable/issues/` 就绑旧 issue；也不要在明显需要受管理时悄悄跳过记录。
+不要仅因仓库存在根 `codestable/issues/` 或某个 Epic 的 `issues/` 就绑旧 issue；必须按主题与归属确认目标，也不要在明显需要受管理时悄悄跳过记录。
 
 写前掌握：目标与范围；**已完成开工协议中的 `codestable/` 检索**（见 `SKILL.md`；本会话设计阶段已扫过且无新写入可复用）；相关 **project spec** 与 epic `spec.md`（若适用）；相关代码是否仍贴合设计。未检索不得只靠代码开写。
 
@@ -80,7 +80,7 @@ UI：只实现已确认“目标”图的本范围；验证覆盖稳定约束主
 - **关闭候选**：关闭时应进入 project/epic spec 或 notes 的内容（**此时不毕业**，除非用户明确要求收尾）
 - **穿刺结果**（若走过）：风险表、顺序、每点结果、主路径是否通、剩余加厚
 
-现状或影响不准时更新 issue 里对应叙述，不另堆一份冲突解释。常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
+现状或影响不准时更新 issue 里对应叙述，不另堆一份冲突解释。新建时先判归属：独立 Issue 写根 `codestable/issues/`，Epic Issue 写所属 Epic 的 `issues/`，各自独立编号。常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
 
 **快改**：见 [fast](fast.md) 落 `ff`。无 ff 例外：不创建 issue；仅当已记录真相失效时同步 project spec；不自动改 Vision；**默认不 commit**。
 

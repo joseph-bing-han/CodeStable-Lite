@@ -62,11 +62,12 @@
 
 用户只确认整理 talk → 只写 talk。同时确认安排时再执行出口：
 
-- **快改**（小改默认）→ [fast](fast.md)（完成后 `NNN-x-ff-名称.md`；用户明确不要痕迹时可无 ff）
+- **快改**（小改默认）→ [fast](fast.md)（完成后在所属 issues 树写 `NNN-x-ff-名称.md`；用户明确不要痕迹时可无 ff）
 - 目标全景 → Vision
 - 独立 feature/bug/chore/refactor → `codestable/issues/{NNN}-o-{名称}.md` + `templates/entities/issue.md`（设 `type`）
-- 新 epic → `codestable/epics/{NNN}-o-{名称}/spec.md`
-- Explore issue → [explore](explore.md)（`{NNN}-o-{名称}/`）
+- 已有 Epic 的 feature/bug/chore/refactor → `codestable/epics/{epic}/issues/{NNN}-o-{名称}.md` + `templates/entities/issue.md`
+- 新 epic → `codestable/epics/{NNN}-o-{名称}/spec.md`；首个所属 Issue 创建时再建同目录 `issues/`
+- Explore issue → [explore](explore.md)（按归属写入根或 Epic 的 issues 树）
 - bug → [complain](complain.md)
 - 已有 epic 规格变化 → 谈记录决策后 [spec](spec.md)
 

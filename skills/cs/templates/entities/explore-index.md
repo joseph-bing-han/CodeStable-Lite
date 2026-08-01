@@ -4,7 +4,6 @@ title: "[探索标题]"
 type: explore
 status: open
 created: YYYY-MM-DD
-epic: ""
 related_issue: ""
 ---
 
@@ -43,6 +42,6 @@ related_issue: ""
 
 ## 关掉时材料去哪
 
-- 稳定机制说明 → `codestable/spec/...`
+- 稳定机制说明 → 独立事项进 `codestable/spec/...`；Epic 所属事项进该 Epic `spec.md`
 - 影响分析 → 目标 issue（若有）
 - 证据与排除史 → 留在本 Explore

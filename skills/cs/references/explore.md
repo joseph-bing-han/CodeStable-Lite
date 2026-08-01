@@ -35,8 +35,8 @@
 | | 现状说明 | Explore issue |
 |---|---|---|
 | 何时 | 相关路径能用紧凑叙事讲清 | 讲不清、跨多边界、证据冲突、需多篇路径文、或理解将被多处复用 |
-| 写哪 | 对话 / 目标 issue 的现状说明（及有变化时的影响分层） | `codestable/issues/{NNN}-o-{名称}/` |
-| 关闭 | 随目标 issue 或直接进入 Design / Do | 用户确认后 Close：稳定现状机制说明毕业到 Project Spec |
+| 写哪 | 对话 / 目标 issue 的现状说明（及有变化时的影响分层） | 独立：`codestable/issues/{NNN}-o-{名称}/`；Epic 所属：该 Epic 的 `issues/{NNN}-o-{名称}/` |
+| 关闭 | 随目标 issue 或直接进入 Design / Do | 用户确认后 Close：独立事项毕业到 Project Spec；Epic 所属事项先毕业到 Epic Spec |
 
 ## 行动指南
 
@@ -79,7 +79,7 @@
 
 ### Explore issue
 
-路径：`codestable/issues/{NNN}-o-{名称}/`，入口 `index.md`（`templates/entities/explore-index.md`），路径文章用 `explore-article.md`。关闭时目录改为 `{NNN}-x-{名称}/`。`NNN` 取 issues 下最大序号 + 1。
+路径按归属选择：独立 Explore 用 `codestable/issues/{NNN}-o-{名称}/`；只属于一个 Epic 的 Explore 用 `codestable/epics/{epic}/issues/{NNN}-o-{名称}/`。入口 `index.md`（`templates/entities/explore-index.md`），路径文章用 `explore-article.md`。关闭时只把该目录改为 `{NNN}-x-{名称}/`。`NNN` 取所属 issues 树（含 `done/`）最大序号 + 1。
 
 `index.md` 是认知地图（见模板自检：问题与停止条件、一句话模型、边界、先读哪篇、结论、影响、修正、毕业位置）。路径文章按“某触发如何产生结果”组织，不按调查轮次或代码目录，也不套统一槽位标题。
 
@@ -88,7 +88,7 @@
 可停止当：能讲清触发—过程—结果；相关责任/数据/状态/分支有证据；未知显式标出；有变化时影响已分层。
 
 - 现状说明 → 继续 Design / Do（或 Complain 诊断）。
-- Explore issue → 仅用户确认关闭后走 [close](close.md)：稳定现状机制说明按渐进式披露合并到 Project Spec；影响分析留目标 issue；证据与已排除理解留 Explore issue。
+- Explore issue → 仅用户确认关闭后走 [close](close.md)：独立事项的稳定现状机制说明按渐进式披露合并到 Project Spec；Epic 所属事项先合并到该 Epic Spec；影响分析留目标 issue；证据与已排除理解留 Explore issue。
 
 ## 收尾汇报
 
