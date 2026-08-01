@@ -122,7 +122,7 @@ codestable/
 
 - 关闭：路径 `-o-` → `-x-`，序号与名称不变；`status: closed`。
 - 常规 issue 模板：`templates/entities/issue.md`（`type: feature|bug|chore|refactor`）。
-- **ff** 只四节：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design。
+- **ff** 只答四件事：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design 与空槽位。
 - Talk：`codestable/talks/`；Note：`codestable/notes/`（同主题改原文件）；Tool：`codestable/tools/`。
 - 启动短规则只进会注入的 `AGENTS.md` 或 `CLAUDE.md`（不两处重复）。**不建 `facts.md`。**
 

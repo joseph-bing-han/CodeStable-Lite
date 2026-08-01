@@ -48,14 +48,14 @@
 路径规则：把文件名或目录名中的 **`-o-` 改为 `-x-`**，保留 `NNN`、可选的 `ff`、名称不变。例如 `012-o-fix-login.md` → `012-x-fix-login.md`；`015-o-ff-toolbar.md` → `015-x-ff-toolbar.md`；Explore 目录 `003-o-auth-flow/` → `003-x-auth-flow/`。
 
 - **普通 issue**：检查目标、范围、质量目标、执行记录与验证；有界简化则检查上限/触发/方向。缺记录或证据 → 回 Design/Do。
-- **ff issue**：检查四节是否齐全（做了什么 / 改了哪些 / 验证 / 对 `codestable/` 的影响）。真相失效须已同步 spec 或明确标漂移；不要求完整质量清单与实现设计。同会话快改已直接落 `x-ff` 的，无需再关一次。
+- **ff issue**：检查四答是否齐全（做了什么 / 改了哪些 / 验证 / 对 `codestable/` 的影响）。真相失效须已同步 spec 或明确标漂移；不要求完整质量清单与实现设计。同会话快改已直接落 `x-ff` 的，无需再关一次。
 - **Explore issue**：不要求业务代码执行记录。须能讲清触发—过程—结果，相关责任/数据/状态有证据，未知显式标出；有具体变化时影响已分层。未达“足够行动” → 继续探索，不进 Do。
 
 按 `epic` frontmatter / 归属回写：
 
 - `type: ff`：默认不强制大段毕业；按「对 `codestable/` 的影响」执行或确认；坑点可进 notes
 - `epic` 空且非 ff：稳定结论 → project spec
-- `type: explore`：用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore `## 关闭回写` 记录迁入位置
+- `type: explore`：用户认可后，稳定现状机制说明 → `codestable/spec/` 并更新 `index.md`；影响分析留 `related_issue`；证据与已排除理解留 Explore issue；在 Explore 入口写清材料迁入位置
 - `epic` 有目录：结果、验证、仍有效约束、推进变化与毕业候选 → 该 epic `spec.md`
 
 坑点 → notes；启动短规则 → `AGENTS.md` / `CLAUDE.md`；稳定工具 → tools。
@@ -84,10 +84,10 @@
 
 关闭 issue：
 
-- 更新 `## 关闭结论`（常规 issue）：判断、验证摘要（含质量证据）、回写位置、遗留事项；ff 以「对 `codestable/` 的影响」为准，可无长关闭结论
+- 常规 issue 写清关闭结论：判断、验证摘要（含质量证据）、回写位置、遗留事项；ff 以「对 `codestable/` 的影响」为准，可无长关闭结论
 - `status: closed`；路径 `-o-` → `-x-`（序号与名称不变）
 
-关闭 Explore issue：另更新 spec 阅读路径与 Explore `## 关闭回写`。
+关闭 Explore issue：另更新 spec 阅读路径，并在 Explore 入口记录迁入结果。
 
 关闭 epic：
 

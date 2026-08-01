@@ -23,7 +23,7 @@
 - 进行中：`codestable/issues/{NNN}-o-ff-{名称}.md`
 - 已完成：`codestable/issues/{NNN}-x-ff-{名称}.md`
 - `NNN` = 已有最大序号 + 1（至少三位）
-- 模板：`templates/entities/ff-issue.md`，`type: ff`
+- 模板：`templates/entities/ff-issue.md`，`type: ff`（四答自检，非四节空槽）
 
 ## 行动指南
 
