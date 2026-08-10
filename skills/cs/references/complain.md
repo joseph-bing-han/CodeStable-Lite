@@ -64,9 +64,9 @@ Bug 入口：先搞清坏在哪、可能根因是什么，**直接尝试修复**
 
 ## 产物契约
 
-**受管理**：先判归属；独立 bug 写 `codestable/issues/{NNN}-o-{名称}.md`，Epic bug 写 `codestable/epics/{epic}/issues/{NNN}-o-{名称}.md`。`NNN` 取所属 issues 树下一号；模板 `issue.md`（`type: bug`）。读者须能看到：修好后怎样、当前证据、根因、怎么验、执行痕迹与关闭回写；质量目标有则写。走过升级路径再补反馈回路 / 复现最小化。标题随议题，不套空槽位。关闭时只把目标 Issue 的 `{NNN}-o-...` 改为 `{NNN}-x-...`。
+**受管理**：先判归属；独立 bug 写 `codestable/issues/{NNN}-o-{名称}.md`，Epic bug 写 `codestable/epics/{epic}/issues/{NNN}-o-{名称}.md`。`NNN` 取所属 issues 树下一号；模板 `issue.md`（`type: bug`）。读者须能看到：修好后怎样、当前证据、根因、怎么验、执行痕迹与关闭回写；质量目标有则写。走过升级路径再补反馈回路 / 复现最小化。标题随议题，不套空槽位。关闭时只把目标 Issue 的 `{NNN}-o-...` 改为 `{NNN}-x-...`。这些内容都进入同一 Issue 正本，不再按日期或 Task 另建 `fix-note`、`report`、`analysis` 目录或文件。
 
-**快改**（简单 bug 默认）：见 [fast](fast.md)。汇报：分叉、根因、修了什么、怎么确认好了、`ff` 路径。用户明确不要痕迹时可无 `ff`。默认不 commit。正式关闭受管理事项 → Close。
+**快改**（简单 bug 默认）：见 [fast](fast.md)。汇报：分叉、根因、修了什么、怎么确认好了、`ff` 路径。`ff` 就是唯一修复记录，不与额外修复说明并存。用户明确不要痕迹时可无 `ff`。默认不 commit。正式关闭受管理事项 → Close。
 
 ## 收尾汇报
 

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Isolated Task archive sequencing from every business-entity namespace: ordinary Issues and `ff` records remain numbered single files, only Explore Issues use directories, and legacy dated `fix-note` layouts are no longer valid generation precedents.
 - Added a mandatory Task spine inside the single `cs` Skill: every posture now creates or resumes a Task, records observable batches, completes and atomically archives through a single-writer stale-snapshot-guarded runtime, and switches to unattended recommended-direction execution after plan commitment.
 - Moved the project workspace from the hidden `.cs/` directory to `codestable/`, so common tooling can discover its specifications, work items, and knowledge artifacts without special configuration.
 - Added Vision Spec as a fourth core information responsibility under `codestable/vision/`, with user-journey-led recursive maps, candidate and mutually exclusive directions, lightweight realization state, and explicit extraction into development slices.

@@ -7,6 +7,7 @@ created: YYYY-MM-DD
 ---
 
 <!-- 快改痕迹：轻。读者只要 30 秒扫完。禁止迷你 Design。 -->
+<!-- 路径必须是所属 issues 树下的 {NNN}-o|x-ff-{name}.md；不得放入日期或 Task 目录，也不得另建 fix-note、report、analysis 或其他补充修复记录。 -->
 
 # [快改标题]
 

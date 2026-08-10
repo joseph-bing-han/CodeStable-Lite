@@ -27,6 +27,7 @@
 - 只在改动明确推进某个 Epic 边界时挂入该 Epic；否则留根 issues，不因代码路径碰巧相邻而挂靠
 - `NNN` = 所属 issues 树（含 `done/`）已有最大序号 + 1（至少三位）
 - 模板：`templates/entities/ff-issue.md`，`type: ff`（四答自检，非四节空槽）
+- 每次快改只生成这一份 `NNN-o|x-ff-...md` 正本。Task 日期、Task slug 与 archived 每日序号不得进入 `issues/` 路径，也不另建日期目录、任务目录、`fix-note`、`report` 或 `analysis` 文件；需要保留的修复说明直接收进 `ff` 四答或 Task 记录。
 
 ## 行动指南
 
@@ -92,6 +93,7 @@
 - 不写 Design / 九项清单 / 完整验收表
 - 不在动手前建空壳 `ff` issue
 - 不把 `ff` 写成迷你 Design 或常规 feature issue
+- 不在 `ff` 之外复制一份修复说明，也不模仿历史日期目录或旧 `fix-note` 结构
 - 不因「要快」跳过 `codestable/` 轻检索与验证
 - 不在用户未明确拒绝痕迹时省略 `ff`
 - 不自动 push / 部署

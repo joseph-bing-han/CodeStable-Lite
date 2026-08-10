@@ -5,5 +5,6 @@ interface:
     Use $cs as CodeStable: one world model (Vision / Project Spec / Epic / Issue under codestable/), many stances.
     First pick the user's stance, then read only that stance's reference plus the mandatory Task and unattended-execution contracts.
     Before substantive work, create or resume a Task. Update it after every observable batch, then complete and atomically archive it before the final answer. Read-only work and no-issue requests are not exceptions.
+    Keep Task archive naming isolated to codestable/tasks/archived. Ordinary Issues and ff records are single numbered files directly under their owning issues tree; never copy Task dates or slugs into Issue directories, and never add duplicate fix-note, report, or analysis artifacts. Only Explore Issues use directories.
     Ask clarifying questions only before the plan is committed to the Task. After commitment, run unattended: choose the recommended safe direction, resolve failures, and continue until every planned outcome, verification gate, and Task archive is complete.
     Keep the single cs entry and announce stance names only when useful.

@@ -210,6 +210,8 @@ your-project/
         └── archived/YYYY-MM-DD-NNN-{task}.md
 ```
 
+Task 与 Issue 使用互不外溢的命名空间：`YYYY-MM-DD-NNN-{task}.md` 只属于 `tasks/archived/`。普通 Issue 和 `ff` 必须直接以带序号的单文件放在所属 `issues/` 树下；不得按日期或 Task 另建目录，也不得在正本旁复制 `fix-note`、`report` 或 `analysis`。只有 Explore Issue 使用 `{NNN}-o|x-{name}/index.md` 目录。历史非规范目录可以检索，但不能作为新产物的命名样例。
+
 Lite 采用单写者 Task 模型，不生成 locks、staging、tombstones 或 conflicts。runtime 通过 SHA-256 陈旧快照保护拒绝旧内容覆盖，以独占原子发布完成归档；Git 负责长期历史审计。
 
 - `NNN` 在 issues、epics、notes、talks 各自的树内独立递增，`done/` 中的项目也参与编号计算。

@@ -13,8 +13,6 @@ related_docs: []
 
 # {goal}
 
-归档文件名使用 `YYYY-MM-DD-NNN-{task}.md`，其中 `NNN` 是按归档日期从 `001` 开始递增的三位顺序号。
-
 ## 1. 任务目标
 
 {goal}

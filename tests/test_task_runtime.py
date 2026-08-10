@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -48,6 +50,22 @@ def load_initializer():
 
 
 initializer = load_initializer()
+
+
+def snapshot_directory_tree(directory: Path) -> dict[str, tuple[str, bytes | None]]:
+    snapshot: dict[str, tuple[str, bytes | None]] = {}
+    if not directory.exists():
+        return snapshot
+
+    for directory_entry in sorted(directory.rglob("*")):
+        relative_path = directory_entry.relative_to(directory).as_posix()
+        if directory_entry.is_dir():
+            snapshot[relative_path] = ("directory", None)
+        elif directory_entry.is_file():
+            snapshot[relative_path] = ("file", directory_entry.read_bytes())
+        else:
+            snapshot[relative_path] = ("other", None)
+    return snapshot
 
 
 class TaskRuntimeTests(unittest.TestCase):
@@ -111,6 +129,55 @@ class TaskRuntimeTests(unittest.TestCase):
         )
         self.assertIn("status: active", task_text)
         self.assertIn("- [ ] Inspect current behavior", task_text)
+
+    def test_task_lifecycle_never_changes_the_issue_workspace(self) -> None:
+        issues_root = self.root / "codestable/issues"
+        explore_root = issues_root / "003-o-current-path"
+        explore_root.mkdir(parents=True)
+        (issues_root / "001-o-ordinary.md").write_text("ordinary issue\n", encoding="utf-8")
+        (issues_root / "002-o-ff-small-fix.md").write_text("fast fix\n", encoding="utf-8")
+        (explore_root / "index.md").write_text("explore issue\n", encoding="utf-8")
+        issue_workspace_before_task = snapshot_directory_tree(issues_root)
+
+        active_path = self.create_task("issue-workspace-isolation")
+        self.complete_task("issue-workspace-isolation")
+        archive_result = task_runtime.archive_task(
+            root=self.root,
+            task="issue-workspace-isolation",
+            archive_date="2026-07-29",
+            expected_sha256=task_runtime.calculate_sha256(active_path),
+        )
+        cleanup_findings = task_runtime.cleanup_task(self.root, "issue-workspace-isolation")
+        scan_result = task_runtime.scan_tasks(self.root)
+
+        self.assertTrue((self.root / archive_result.archived_path).is_file())
+        self.assertEqual(cleanup_findings, [])
+        self.assertEqual(scan_result.findings, ())
+        self.assertEqual(snapshot_directory_tree(issues_root), issue_workspace_before_task)
+
+    def test_initializer_preserves_existing_issues_and_creates_no_issue_artifacts(self) -> None:
+        issues_root = self.root / "codestable/issues"
+        explore_root = issues_root / "003-o-current-path"
+        explore_root.mkdir(parents=True)
+        (issues_root / "001-o-ordinary.md").write_text("ordinary issue\n", encoding="utf-8")
+        (issues_root / "002-o-ff-small-fix.md").write_text("fast fix\n", encoding="utf-8")
+        (explore_root / "index.md").write_text("explore issue\n", encoding="utf-8")
+        issue_workspace_before_initialization = snapshot_directory_tree(issues_root)
+
+        initialization_output = io.StringIO()
+        with contextlib.redirect_stdout(initialization_output):
+            initialization_result = initializer.init_codestable(
+                project=self.root,
+                force=False,
+                migrate_legacy=False,
+            )
+
+        self.assertEqual(initialization_result, 0)
+        self.assertIn("Initialized CodeStable workspace", initialization_output.getvalue())
+        self.assertEqual(
+            snapshot_directory_tree(issues_root),
+            issue_workspace_before_initialization,
+        )
 
     def test_create_task_rejects_an_empty_plan(self) -> None:
         with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "at least one committed step"):

@@ -210,6 +210,8 @@ your-project/
         └── archived/YYYY-MM-DD-NNN-{task}.md
 ```
 
+Task and Issue naming are isolated namespaces: `YYYY-MM-DD-NNN-{task}.md` belongs only under `tasks/archived/`. Ordinary Issues and `ff` records are numbered single files placed directly in their owning `issues/` tree. They must not gain date- or Task-named directories or duplicate `fix-note`, `report`, or `analysis` artifacts. Only an Explore Issue uses the `{NNN}-o|x-{name}/index.md` directory form. Legacy noncanonical directories remain searchable evidence, not naming examples for new artifacts.
+
 Lite uses a single-writer Task model and does not create locks, staging, tombstones, or conflicts directories. The runtime uses a SHA-256 stale-snapshot guard, publishes archives atomically without overwriting existing evidence, and leaves long-term history auditing to Git.
 
 - `NNN` increments independently within the issues, epics, notes, and talks trees. Items under `done/` count too.

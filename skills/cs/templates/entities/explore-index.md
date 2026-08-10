@@ -7,6 +7,8 @@ created: YYYY-MM-DD
 related_issue: ""
 ---
 
+<!-- 本模板只用于 {NNN}-o|x-{name}/index.md 形式的 Explore Issue；普通 Issue 与 ff 必须是所属 issues 树下的单一 Markdown 文件。 -->
+
 # [探索标题]
 
 > **读者：** 要沿「触发→结果」理解现状、并决定能否行动的人。  

@@ -137,6 +137,8 @@ codestable/
 
 图中的 `o|x` 表示取 `o`（open）或 `x`（closed），不是路径中的字面字符。路径表达唯一归属：只属于一个 Epic 的事项进入该 Epic 的 `issues/`，其余留在根 `issues/`。常规 Issue 与 `ff` 是单文件；只有需要独立调查工作区的 Explore Issue 使用目录。Epic 的 `issues/` 在首个所属事项创建时再建立。
 
+**Task 与 Issue 的命名空间必须隔离。** `YYYY-MM-DD-NNN-{task}.md` 只用于 `codestable/tasks/archived/`，不得把日期、每日序号、Task slug 或 Task 目录结构复用到任何 `issues/` 树。普通 Issue 与 `ff` 各自只有一份带所属树序号的 Markdown 正本；根因、修复范围、验证和执行记录写入该正本或 Task，不另建 `{date}-{task}/`、`*-fix-note.md`、`*-report.md`、`*-analysis.md` 等补充事项目录或文件。只有 Explore Issue 可以使用 `{NNN}-o|x-{名}/index.md` 目录结构。检索到历史非规范目录时可将其作为证据读取，但不得照抄为新产物；没有迁移授权时也不自动整理历史文件。
+
 `done/` 只是用户主动整理后的存放位置，不是新的生命周期状态。关闭不会自动移动事项；`done/` 中的内容仍参与检索和编号。
 
 这张图是定位地图，不是每次工作的必读清单。按当前姿态和关键词命中逐层下钻，只读取足以支撑判断的局部。
@@ -178,6 +180,7 @@ Issue 编号不是全局身份。引用 Epic Issue 时，必须给完整路径�
 - **ff** 只四节：做了什么 / 改了哪些 / 怎么验证 / 对 `codestable/` 的影响；禁止迷你 Design。
 - Talk：`codestable/talks/`；Note：`codestable/notes/`（同主题改原文件）；Tool：`codestable/tools/`。
 - Task 不参与 issues、epics、notes、talks 等实体编号树；Task archived 文件使用独立的每日三位序号。Task slug 使用小写英文短横线。启动短规则只进会注入的 `AGENTS.md` 或 `CLAUDE.md`（不两处重复）。**不建 `facts.md`。**
+- 项目局部旧规则、历史文件或相邻样例若要求为普通 Issue / `ff` 另建日期目录、Task 目录或 `fix-note`，视为已过期的组织契约；新产物仍按本节单一正本规则生成，并在 Task 中记录冲突来源，不制造第二套结构。
 
 - 只属于一个 Epic 的 Issue，必须进入该 Epic 的 `issues/`。
 - 不属于任何 Epic 的 Issue，留在根 `issues/`。

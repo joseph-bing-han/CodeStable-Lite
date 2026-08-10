@@ -43,6 +43,25 @@ class SkillContractTests(unittest.TestCase):
         )
         self.assertTrue(all(path.is_file() for path in required_paths))
 
+    def test_issue_artifact_contract_defines_distinct_physical_shapes(self) -> None:
+        skill_text = read_text("skills/cs/SKILL.md")
+        agent_prompt = read_text("skills/cs/agents/openai.yaml")
+        issue_template = read_text("skills/cs/templates/entities/issue.md")
+        fast_fix_template = read_text("skills/cs/templates/entities/ff-issue.md")
+        explore_template = read_text("skills/cs/templates/entities/explore-index.md")
+
+        self.assertIn("Task 与 Issue 的命名空间必须隔离", skill_text)
+        self.assertIn(r"`codestable/issues/{NNN}-o\|x-{名}.md`", skill_text)
+        self.assertIn(r"`{NNN}-o\|x-ff-{名}.md`", skill_text)
+        self.assertIn(r"`{NNN}-o\|x-{名}/index.md`", skill_text)
+        self.assertIn("Keep Task archive naming isolated", agent_prompt)
+        self.assertIn("普通 Issue 不使用日期或 Task 目录", issue_template)
+        self.assertIn(
+            "不得另建 fix-note、report、analysis 或其他补充修复记录",
+            fast_fix_template,
+        )
+        self.assertIn("本模板只用于 {NNN}-o|x-{name}/index.md", explore_template)
+
     def test_root_skill_defines_mandatory_task_lifecycle_for_every_posture(self) -> None:
         skill_text = read_text("skills/cs/SKILL.md")
         required_markers = (

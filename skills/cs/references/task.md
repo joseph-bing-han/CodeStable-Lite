@@ -28,6 +28,7 @@ codestable/tasks/
 - `{task}` 使用小写英文短横线，active 文件不带日期。
 - archived 文件必须带归档日期和三位每日递增序号；当天第一个归档为 `001`，例如 `YYYY-MM-DD-001-{task}.md`。
 - 序号按归档日期在所有 Task 之间共享，每天从 `001` 重新开始；同一天按完成归档的先后连续递增，不允许重复或跳号。
+- 日期前缀、每日序号和 `{task}` slug 是 `tasks/archived/` 的私有命名契约，不改变 Issue、Epic、Note、Talk 或其他实体的路径与编号。Task runtime 只读写 `codestable/tasks/`，不得在 `issues/` 下创建日期目录、Task 目录或任何业务产物。
 - Lite 采用单写者模型，不生成 lock、staging、tombstone 或 conflict 目录。Task Markdown 是唯一运行正本，Git 承担长期历史审计。
 - 扫描 Task 必须直接枚举文件系统；不得因为 ignore-aware Glob / grep 没结果就判断没有 Task。
 

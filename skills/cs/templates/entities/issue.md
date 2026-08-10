@@ -10,6 +10,7 @@ created: YYYY-MM-DD
 type: feature | bug | chore | refactor
 写法：按读者此刻要解决的问题组织，不要套固定章节名凑满。
 未发生的信息整段省略；简单改动保持短。
+路径：所属 issues 树下的 {NNN}-o|x-{name}.md。普通 Issue 不使用日期或 Task 目录，不另建 fix-note、report 或 analysis 文件。
 -->
 
 # [标题]
