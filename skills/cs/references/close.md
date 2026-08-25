@@ -1,6 +1,6 @@
 # Close：关闭与沉淀
 
-本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)。关闭 Issue / Epic 仍遵守其业务授权，但 Close workflow 自身必须创建、更新并归档 Task；Task 归档不等于业务实体关闭。
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)。询问关闭规则时直接回答且不创建 Task；真正关闭 Issue / Epic 仍遵守其业务授权，Close workflow 自身必须创建、更新并归档 Task；Task 归档不等于业务实体关闭。
 
 关闭 issue 或 epic，把仍成立的结论**毕业**到正确层级；Epic 关闭时检查来源 Vision 的实现状态与链接。
 

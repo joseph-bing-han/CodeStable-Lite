@@ -62,16 +62,18 @@ class SkillContractTests(unittest.TestCase):
         )
         self.assertIn("本模板只用于 {NNN}-o|x-{name}/index.md", explore_template)
 
-    def test_root_skill_defines_mandatory_task_lifecycle_for_every_posture(self) -> None:
+    def test_root_skill_defines_question_gate_and_issue_task_lifecycle(self) -> None:
         skill_text = read_text("skills/cs/SKILL.md")
         required_markers = (
-            "全部姿态强制 Task 主线",
+            "Issue 姿态进入 Task 主线",
+            "简单 Question 直接回答，不创建 Task",
+            "无法识别是 Question 还是 Issue 时，必须在创建 Task 前用 AskQuestion 确认",
             "创建或恢复 Task",
             "每个可观察批次",
             "标记 completed",
             "原子归档",
             "active 同名文件不存在",
-            "Task 不可被用户要求的无痕模式豁免",
+            "只在对话回答”若确实是 Question，则不创建 Task",
         )
         for required_marker in required_markers:
             with self.subTest(required_marker=required_marker):
@@ -88,6 +90,10 @@ class SkillContractTests(unittest.TestCase):
     def test_task_reference_defines_source_of_truth_and_terminal_archive(self) -> None:
         task_text = read_text("skills/cs/references/task.md")
         required_markers = (
+            "Issue，不是 Question",
+            "简单的 **Question** 是直接问答，不创建 Task",
+            "必须在创建 Task 前调用 `AskQuestion`",
+            "Question 路径不扫描或恢复 Task",
             "Task List 是 source of truth",
             "codestable/tasks/active/",
             "codestable/tasks/archived/",
@@ -96,7 +102,7 @@ class SkillContractTests(unittest.TestCase):
             "archive-pending-move",
             "duplicate-task-state",
             "`completed` 不是最终状态",
-            "所有姿态",
+            "Issue 可以属于接入、讨论整理、愿景、规格",
         )
         for required_marker in required_markers:
             with self.subTest(required_marker=required_marker):
@@ -105,6 +111,8 @@ class SkillContractTests(unittest.TestCase):
     def test_autonomy_reference_forbids_questions_after_plan_commitment(self) -> None:
         autonomy_text = read_text("skills/cs/references/autonomy.md")
         required_markers = (
+            "简单 Question 直接回答，不创建 Task",
+            "无法可靠判断是 Question 还是 Issue，必须在 Task 创建前使用 AskQuestion",
             "计划确定前",
             "计划确定后",
             "禁止再次调用 AskQuestion",
@@ -123,8 +131,31 @@ class SkillContractTests(unittest.TestCase):
         explore_text = read_text("skills/cs/references/explore.md")
         review_text = read_text("skills/cs/references/code-design.md")
         self.assertIn("Task 不可豁免", fast_text)
-        self.assertIn("只读流程也必须", explore_text)
-        self.assertIn("只读 Review 也必须", review_text)
+        self.assertIn("需要形成可复用调查结论的 Explore Issue", explore_text)
+        self.assertIn("只读 Review 也必须创建、更新、完成并归档 Task", review_text)
+
+    def test_posture_references_distinguish_direct_questions_from_issues(self) -> None:
+        expected_markers = {
+            "talk.md": "简单 Question 直接回答且不创建 Task",
+            "vision.md": "简单 Question 直接回答且不创建 Task",
+            "spec.md": "询问现有规格时直接回答且不创建 Task",
+            "explore.md": "简单现状 Question 直接说明且不创建 Task",
+            "complain.md": "仅询问问题原因时直接回答且不创建 Task",
+            "design.md": "仅询问方案差异时直接回答且不创建 Task",
+            "fast.md": "简单改法询问直接回答且不创建 Task",
+            "do.md": "仅询问实现方式时直接回答且不创建 Task",
+            "close.md": "询问关闭规则时直接回答且不创建 Task",
+            "code-design.md": "仅询问设计原则时直接回答且不创建 Task",
+            "note.md": "询问已有知识时直接回答且不创建 Task",
+            "maketools.md": "询问流程用法时直接回答且不创建 Task",
+            "onboard.md": "询问接入方法时直接回答且不创建 Task",
+        }
+        for reference_name, marker in expected_markers.items():
+            with self.subTest(reference_name=reference_name):
+                reference_text = (SKILL_ROOT / "references" / reference_name).read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn(marker, reference_text)
 
     def test_initialization_and_public_docs_include_task_workspace(self) -> None:
         initialization_text = read_text("skills/cs/scripts/init_codestable.py")
@@ -139,6 +170,31 @@ class SkillContractTests(unittest.TestCase):
                 self.assertNotIn(f"codestable/tasks/{removed_directory}", initialization_text)
         self.assertIn("Task", agent_text)
         self.assertIn("unattended", agent_text)
+
+    def test_public_contracts_explain_question_without_task(self) -> None:
+        chinese_readme = read_text("README.md")
+        english_readme = read_text("README.en.md")
+        agent_prompt = read_text("skills/cs/agents/openai.yaml")
+        self.assertIn("Question 不创建 Task", chinese_readme)
+        self.assertIn("Questions create no Task", english_readme)
+        self.assertIn("First distinguish a simple Question from an Issue", agent_prompt)
+
+    def test_public_installation_docs_target_the_modified_repository(self) -> None:
+        modified_repository_url = "https://github.com/joseph-bing-han/CodeStable-Lite"
+        required_install_commands = (
+            "npx skills add joseph-bing-han/CodeStable-Lite",
+            "npx skills add joseph-bing-han/CodeStable-Lite -g",
+        )
+        original_install_command = "npx skills add codestable/CodeStable-Lite"
+        for readme_name in ("README.md", "README.en.md"):
+            with self.subTest(readme_name=readme_name):
+                readme_text = read_text(readme_name)
+                documented_lines = {line.strip() for line in readme_text.splitlines()}
+                self.assertIn(modified_repository_url, readme_text)
+                for install_command in required_install_commands:
+                    with self.subTest(install_command=install_command):
+                        self.assertIn(install_command, documented_lines)
+                self.assertNotIn(original_install_command, readme_text)
 
     def test_plan_committed_artifacts_do_not_reopen_human_checkpoints(self) -> None:
         forbidden_phrases = {

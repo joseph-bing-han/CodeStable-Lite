@@ -1,6 +1,6 @@
 # Vision：整理目标应用全景
 
-本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：目标内容在计划确定前收束；进入整理后由同一 Task 持续更新、验证并归档。
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：简单 Question 直接回答且不创建 Task；目标整理属于 Issue 时，在计划确定前收束内容，进入整理后由同一 Task 持续更新、验证并归档。
 
 ## 背景
 

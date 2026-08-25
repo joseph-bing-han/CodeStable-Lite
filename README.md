@@ -30,16 +30,18 @@ CodeStable 是面向 AI 辅助开发的**可控软件演进框架**。它不要�
 
 ## 安装
 
-使用 Skills CLI 安装：
+使用 Skills CLI 安装当前维护的修改版：
+
+仓库地址：[`joseph-bing-han/CodeStable-Lite`](https://github.com/joseph-bing-han/CodeStable-Lite)
 
 ```bash
-npx skills add codestable/CodeStable-Lite
+npx skills add joseph-bing-han/CodeStable-Lite
 ```
 
-默认安装到当前项目；希望所有项目都能使用时加 `-g`：
+默认安装到当前项目；希望所有项目都能使用当前修改版时加 `-g`：
 
 ```bash
-npx skills add codestable/CodeStable-Lite -g
+npx skills add joseph-bing-han/CodeStable-Lite -g
 ```
 
 本地开发时，在仓库根目录验证安装发现：
@@ -84,15 +86,15 @@ CodeStable 的核心对象不是 Agent 编排，而是软件自身的状态、�
 
 ## 一套判断系统，而非固定流水线
 
-### 先判断姿态，再只加载需要的上下文
+### 先判断 Question / Issue，再判断姿态并只加载需要的上下文
 
-同一个会话中，用户可能在讨论、理解现状、设计、快改、推进受管理事项，或收尾沉淀。`cs` 先识别此刻的主姿态，再读取对应的最小规则和项目材料；已经读过且未变化的内容会复用，而非重复塞进上下文。
+同一个会话中，用户可能在提问，也可能在讨论、理解现状、设计、快改、推进受管理事项或收尾沉淀。`cs` 先判断是 Question 还是 Issue；只有 Issue 才识别主姿态并读取对应的最小规则和项目材料。已经读过且未变化的内容会复用，而非重复塞进上下文。
 
 这使用户不必判断“现在应调用哪个子技能”，也避免把尚未发生的流程提前加载。对 Agent 而言，正确上下文比更大上下文重要。
 
-### 所有姿态共享同一条 Task 留痕主线
+### Issue 共享同一条 Task 留痕主线，Question 不创建 Task
 
-姿态决定工作怎么做，Task 记录这次工作怎样推进。除尚未收束成计划的最初澄清外，讨论整理、愿景、规格、现状理解、快改、受管理实现、修 bug、收尾和只读 Review 都必须：
+先区分用户是在提问（Question）还是要求推进工作（Issue）。解释、事实、定义、简单现状说明、使用建议和方案比较，若回答本身即可结束，就直接回答，不创建 Task。用户要求调查并交付、设计并落盘、修改代码或文档、修复、验证、同步 `codestable/`、推进或关闭已有实体时，才按 Issue 进入 Task 主线：
 
 ```text
 创建或恢复 Task
@@ -103,7 +105,7 @@ CodeStable 的核心对象不是 Agent 编排，而是软件自身的状态、�
   -> 原子归档并确认 active 无同名残留
 ```
 
-Task List 是 source of truth，Agent 自带 Todo / Tasks 只是运行时镜像。“不要 Issue / 不写 ff / 只读 / 小改”可以改变业务产物厚度，但不能跳过 Task。`completed` 只是待归档态；只有 `codestable/tasks/archived/` 正本有效、active 同名文件不存在且扫描无冲突，工作才闭环。
+如果无法可靠判断 Question 还是 Issue，必须在创建 Task 前使用 AskQuestion 让用户选择；不得因为使用了 `/cs`、出现代码路径或提到技术名词，就把 Question 自动升级成 Task。Task List 是 source of truth，Agent 自带 Todo / Tasks 只是运行时镜像。对已经确认的 Issue，“不要 Issue / 不写 ff / 只读 / 小改”可以改变业务产物厚度，但不能跳过 Task。`completed` 只是待归档态；只有 `codestable/tasks/archived/` 正本有效、active 同名文件不存在且扫描无冲突，工作才闭环。
 
 归档文件名使用 `YYYY-MM-DD-NNN-{task}.md`。`NNN` 是同一归档日期下所有 Task 共享的三位顺序号，每天从 `001` 重新开始，并按实际归档顺序递增。
 
@@ -153,7 +155,7 @@ Design 不会把未读懂的部分写成确定结论；Do 遇到小偏差会回�
 | 跨模块、多批推进、规格在边界内持续演化 | Epic Spec；清楚切片可在 Epic 内直接推进，也可按需开 Issue |
 | 现状链路复杂、证据冲突或理解值得复用 | Explore Issue |
 
-管理不是仪式：用户明确不要业务记录时可以不建 `ff`；用户明确要跟踪时也不因“看起来很小”而绕开 Issue。Task 仍是不可豁免的运行账本。完成实现不等于关闭；Issue / Epic 只有在 Task 创建前已获得授权时才关闭，未授权则保持 open 且不补问；Task 归档是每个 workflow 的机械闭环，不等于关闭 Issue 或 Epic，也不等于移动到 `done/`。
+管理不是仪式：用户明确不要业务记录时可以不建 `ff`；用户明确要跟踪时也不因“看起来很小”而绕开 Issue。对已经确认的 Issue，Task 仍是不可豁免的运行账本。完成实现不等于关闭；Issue / Epic 只有在 Task 创建前已获得授权时才关闭，未授权则保持 open 且不补问；Task 归档是每个 Issue workflow 的机械闭环，不等于关闭 Issue 或 Epic，也不等于移动到 `done/`。
 
 ### 把可复用的认识毕业到正确层级
 
@@ -205,7 +207,7 @@ your-project/
     ├── notes/                  # 可复用知识
     │   └── {NNN}-{name}.md
     ├── tools/                  # 已跑通并稳定的流程工具
-    └── tasks/                  # 全部姿态的运行账本
+    └── tasks/                  # 已确认 Issue 的运行账本
         ├── active/{task}.md
         └── archived/YYYY-MM-DD-NNN-{task}.md
 ```
@@ -243,11 +245,6 @@ CodeStable 起源于 [MA](https://github.com/liuzhengdongfortest/MA) 的真实�
 ---
 
 ## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=codestable/CodeStable-Lite&type=date&legend=top-left)](https://www.star-history.com/?repos=codestable%2FCodeStable-Lite&type=date&legend=top-left)
-
 <div align="center">
-
 MIT License · 作者 [@liuzhengdong](https://github.com/liuzhengdongfortest)
-
 </div>

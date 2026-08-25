@@ -12,9 +12,9 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 调用 `cs` 不等于跑完整流程。先判断用户此刻要讨论、理解、设计、实现还是收尾，再采用匹配的管理强度。
 
-### 沟通方式：先结论，再展开
+### 沟通方式：先判定 Question，再决定是否留痕
 
-这里“不跑完整生命周期”只表示不强迫每个请求生成 Vision / Spec / Epic / Issue；**不豁免 Task 生命周期**。Task 是全部姿态共享的运行账本，不是另一套业务流程。
+这里“不跑完整生命周期”不仅表示不强迫每个请求生成 Vision / Spec / Epic / Issue，也表示简单 Question 不创建 Task。先判断用户是在获取答案（Question）还是要求推进可观察工作（Issue）；只有 Issue 才进入 Task 生命周期。
 
 ### 沟通默认：先简单，后展开
 
@@ -28,9 +28,9 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 还不能精确表述的问题，不要为追踪而提前拆成 issue；先用 Talk、Explore 或穿刺把目标、现状或关键风险弄清，能说成可关闭行动后再建 issue 或 Epic。
 
-### 全部姿态强制 Task 主线
+### Issue 姿态进入 Task 主线
 
-先读 [Task 主线](references/task.md) 与 [计划后自治](references/autonomy.md)。尚不能形成目标与步骤时属于 intake，可以使用 AskQuestion 澄清；一旦计划足以开工，必须按以下顺序执行，**所有姿态无例外**：
+先读 [Task 主线](references/task.md) 与 [计划后自治](references/autonomy.md)。简单 Question 直接回答，不创建 Task；无法识别是 Question 还是 Issue 时，必须在创建 Task 前用 AskQuestion 确认。对于已经确认的 Issue，尚不能形成目标与步骤时属于 intake，可以使用 AskQuestion 澄清；一旦计划足以开工，必须按以下顺序执行：
 
 1. 扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task；
 2. 以 Task 正本同步 Agent 原生 Tasks，在当前 run 开始工作；
@@ -39,7 +39,7 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 5. 全部完成后把 Task 标记 completed，立即原子归档并 cleanup；
 6. 只有 archived 正本 schema 有效、active 同名文件不存在且 scan 无冲突，才能给出完成式最终答复。
 
-Task 不可被用户要求的无痕模式豁免。“不要 issue / 不写 ff / 只读 / 小改 / 只在对话回答”只影响业务实体和交付形式，不影响 Task 创建、更新、完成与归档。Task 自身操作更新当前 Task，不递归创建第二个 Task。
+Task 不能被 Issue 的无痕模式豁免。“不要 issue / 不写 ff / 只读 / 小改”只影响业务实体和交付形式，不影响已确认 Issue 的 Task 创建、更新、完成与归档；“只在对话回答”若确实是 Question，则不创建 Task。Task 自身操作更新当前 Task，不递归创建第二个 Task。
 
 计划写入 active Task 后即进入无人值守：禁止再次 AskQuestion，也不要求用户选择实现路线或批准普通下一步；出现分叉、失败或范围内偏差时，按 autonomy 的契约一致性、风险、可逆性、证据与总成本排序自动选择推荐方向，更新 Task 后持续执行到全部工作完成。
 
@@ -47,7 +47,7 @@ Task 不可被用户要求的无痕模式豁免。“不要 issue / 不写 ff / 
 
 ## 1. 先定姿态
 
-从用户原话与上下文中选择**一个主姿态**。选定后立即读取“必读”，再开始行动；未命中的姿态文件不要预读。
+先根据 [Task 主线](references/task.md) 判定是 Question 还是 Issue；Question 直接回答，不进入 Task 主线。确认是 Issue 后，再从用户原话与上下文中选择**一个主姿态**。选定后立即读取“必读”，再开始行动；未命中的姿态文件不要预读。
 
 | 主姿态 | 用户常这样说 | 必读 | 按需读 | 默认边界 |
 |---|---|---|---|---|
@@ -58,22 +58,22 @@ Task 不可被用户要求的无痕模式豁免。“不要 issue / 不写 ff / 
 | **理解现状** | 怎么工作的、这条链路、影响范围 | [explore](references/explore.md) | [docs](references/docs.md)；服务具体变化 → [quality](references/quality.md) | 先现状说明；值得复用再 Explore issue |
 | **修 bug** | 坏了、不符合预期、debug、修这个 bug | [complain](references/complain.md) | [debug](references/debug.md)、[economy](references/economy.md)、[quality](references/quality.md)；结构 → [code-design](references/code-design.md) | 简单默认快改落 `ff`；复杂可受管理 |
 | **设计** | 怎么实现、先设计、实现方案 | [design](references/design.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 不写代码；高风险标穿刺顺序 |
-| **快交付** | 快速、快改、小改一下、直接开干、别走流程 | [fast](references/fast.md) | [economy](references/economy.md)；必要时 [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 轻检索 + 验证；`ff` 可按用户要求省略，Task 永不省略 |
+| **快交付** | 快速、快改、小改一下、直接开干、别走流程 | [fast](references/fast.md) | [economy](references/economy.md)；必要时 [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 轻检索 + 验证；`ff` 可按用户要求省略，已确认 Issue 的 Task 永不省略 |
 | **受管理实现** | 做这个 issue、推进 epic、实现（有档）、穿刺/先打通 | [do](references/do.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；现状不清 → [explore](references/explore.md)；UI → [ui-spec](references/ui-spec.md) | 完成 ≠ 关闭；风险先穿刺再加厚 |
 | **收尾** | 关闭、收尾、做完并沉淀、毕业回写 | [close](references/close.md) | [docs](references/docs.md)、[quality](references/quality.md)；有界简化 → [economy](references/economy.md) | 须在 Task 创建前获得关闭授权；未授权保持 open 且不补问；**不**自动进 `done/` |
 | **审代码** | review、评审、看看这 diff/PR | [code-design](references/code-design.md)（文末 Review） | [economy](references/economy.md)；相关 → [quality](references/quality.md) | 用户点名才做；默认只审不改 |
 | **记知识** | 记一下坑、写 note | [note](references/note.md) | [docs](references/docs.md) | 同主题改原 note，不新建第二条 |
 | **学流程** | 我带你跑一遍、教 AI 做某流程 | [maketools](references/maketools.md) | [docs](references/docs.md) | 危险操作授权在 Task 创建前收束 |
 
-### 怎样判断姿态
+### 怎样判断 Question / Issue 与姿态
 
 1. **用户授权与原话优先**于“看起来该走重流程”。
-2. **小且明确、要快、未要求建档** → **快交付**（不是“先讨论一整轮”）。
+2. **小且明确、要快、未要求建档**，且用户要求执行 → **快交付**（不是“先讨论一整轮”）；如果只是询问怎么做，仍是 Question。
 3. **目标糊、取舍未定** → **讨论**；聊清后再切快交付 / 受管理 / 愿景等。
 4. **已有常规 issue 或用户点名 issue/epic** → **受管理实现**（或先设计）。
 5. **坏的是已有行为** → **修 bug**；新能力 → 快交付或受管理，不是 complain。
 6. **只问怎么工作** → **理解现状**；不要默认开改。
-7. **意图不清且选错会实质改变后续**（例如会不会建 issue、会不会改代码）→ 仅在 Task 创建前用 AskQuestion 给一句推荐 + 理由；Task 创建后按 [计划后自治](references/autonomy.md) 自动择优。
+7. **Question / Issue 意图不清且选错会实质改变后续**（例如会不会创建 Task、会不会改代码）→ 必须在 Task 创建前用 AskQuestion 给一句推荐 + 理由；Question 直接回答，Issue 再按 [计划后自治](references/autonomy.md) 进入 Task。
 8. 写/改 **Agent 技能本身**仍由当前 `cs` 与同一 Task 负责完整生命周期；可读取相关技能编写规则辅助，但不得转移 owner、另建入口或另建 Task。
 
 ### 选择管理强度
@@ -81,11 +81,11 @@ Task 不可被用户要求的无痕模式豁免。“不要 issue / 不写 ff / 
 | 情况 | 默认选择 |
 |---|---|
 | 小、一次做完、低风险，或用户要快 | **快改** → 必留 `ff`（[fast](references/fast.md)） |
-| 用户**明确**不要 issue / `ff` | 可无 `ff`；Task 仍强制创建、更新和归档；真相失效仍同步 spec 或标漂移 |
+| 已确认 Issue 且用户**明确**不要 issue / `ff` | 可无 `ff`；Task 仍强制创建、更新和归档；真相失效仍同步 spec 或标漂移 |
 | 范围取舍、多轮、交接、显著风险、长期质量承诺 | **常规 issue**（`issue.md`，`type: feature\|bug\|chore\|refactor`） |
 | 跨模块、多批、规格在边界内反复演化 | **Epic**；够清楚的切片可 epic 内直接推进 |
 | 技术/集成/迁移风险需先证明可通 | **穿刺**（[do](references/do.md) 手法）再加厚 |
-| 用户明确要管理 / 明确不要业务实体 | 服从其 Issue / `ff` 偏好；Task 账本不可豁免 |
+| 用户明确要管理 / 明确不要业务实体 | 服从其 Issue / `ff` 偏好；已确认 Issue 的 Task 账本不可豁免 |
 
 ---
 
@@ -122,7 +122,7 @@ codestable/
 ├── notes/   可复用知识
 ├── talks/   尚未落定的讨论
 ├── tools/   稳定、可执行的流程工具
-└── tasks/   全部姿态的 active / archived 运行账本
+└── tasks/   已确认 Issue 型工作的 active / archived 运行账本
 ```
 
 根 `issues/` 与每个 Epic 内的 `issues/` 使用同一种结构，但各自独立编号：
@@ -244,7 +244,7 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 3. 开工协议
 
-任何姿态结束 intake、准备 substantive work 时，先创建或恢复 Task；Task runtime 可按需只创建 `codestable/tasks/`，不以完整 onboard 作为前置。随后若项目已有其余 `codestable/` 内容，再做本协议（各 reference 不重复展开）：
+任何 Issue 姿态结束 intake、准备 substantive work 时，先创建或恢复 Task；Question 不进入本协议。Task runtime 可按需只创建 `codestable/tasks/`，不以完整 onboard 作为前置。随后若项目已有其余 `codestable/` 内容，再做本协议（各 reference 不重复展开）：
 
 1. **Task gate**：直接扫描文件系统；恢复匹配 active Task，或用 runtime 创建新 Task；同步 Agent 原生 Tasks。
 2. **扫 `codestable/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
@@ -261,7 +261,7 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 4. 授权边界
 
-- 方向已确认且用户要求执行 → 创建 Task 并进入无人值守，推进到**完成并归档 Task**；不在任何普通步骤、方案分叉或失败修复间反复确认。
+- 已确认是 Issue，且方向已确认、用户要求执行 → 创建 Task 并进入无人值守，推进到**完成并归档 Task**；不在任何普通步骤、方案分叉或失败修复间反复确认。
 - 确认前：讨论不落盘；设计不写代码。
 - 计划确定后：禁止再次 AskQuestion；按 [计划后自治](references/autonomy.md) 自动选择推荐方向并持续执行。
 - 完成 ≠ 关闭；关闭 ≠ `done/`；Task 归档 ≠ 关闭业务实体。实现/快改后只执行风险需要的 Review，**不**自动 push。
@@ -274,7 +274,7 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 | 文件 | 何时读取 |
 |---|---|
-| [task](references/task.md) / [autonomy](references/autonomy.md) | 全部姿态结束 intake 后必读；不按场景省略 |
+| [task](references/task.md) / [autonomy](references/autonomy.md) | 确认是 Issue 且结束 intake 后必读；Question 直接回答，不进入 Task 主线 |
 | [quality](references/quality.md) | 具体变化的讨论/设计/实现/关闭；质量相关 bug；spec 记约束 |
 | [economy](references/economy.md) | 设计/实现/修 bug 取舍；关闭时发现有界简化 |
 | [code-design](references/code-design.md) | 设计/受管理实现/结构问题；**Review 必读（含文末）** |

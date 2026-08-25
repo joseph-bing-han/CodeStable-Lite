@@ -30,16 +30,18 @@ Those judgments and their evidence live in a project-readable `codestable/` work
 
 ## Install
 
-Install with the Skills CLI:
+Install the maintained modified version with the Skills CLI:
+
+Repository: [`joseph-bing-han/CodeStable-Lite`](https://github.com/joseph-bing-han/CodeStable-Lite)
 
 ```bash
-npx skills add codestable/CodeStable-Lite
+npx skills add joseph-bing-han/CodeStable-Lite
 ```
 
-Installation is project-local by default. Add `-g` to make it available across projects:
+Installation is project-local by default. Add `-g` to make this modified version available across projects:
 
 ```bash
-npx skills add codestable/CodeStable-Lite -g
+npx skills add joseph-bing-han/CodeStable-Lite -g
 ```
 
 For local development, verify discovery from the repository root:
@@ -84,15 +86,15 @@ CodeStable centers the software's state, understanding, and changes—not agent 
 
 ## A system of judgment, not a fixed pipeline
 
-### Identify the posture, then load only the context it needs
+### Identify Question / Issue, then choose a posture and load only needed context
 
-Within one conversation, a user may be discussing, understanding current behavior, designing, making a quick change, advancing managed work, or closing it out. `cs` identifies the primary posture first, then reads the smallest set of rules and project material for that posture. Material already read and unchanged is reused instead of being pushed into context again.
+Within one conversation, a user may be asking a Question or discussing, understanding current behavior, designing, making a quick change, advancing managed work, or closing it out. `cs` first distinguishes a Question from an Issue; only an Issue receives a primary posture and the smallest set of rules and project material for that posture. Material already read and unchanged is reused instead of being pushed into context again.
 
 Users therefore do not need to choose a sub-skill, and the system does not load workflows that have not happened. For an agent, the right context matters more than a larger context.
 
-### Give every posture the same traceable Task spine
+### Give Issues the same traceable Task spine; Questions create no Task
 
-The posture decides how work should be done; a Task records how this run advances. Except for initial clarification before an executable plan exists, discussion synthesis, Vision, Spec, current-state exploration, quick changes, managed implementation, bug fixing, closeout, and read-only Review all follow:
+First distinguish a Question from an Issue. Explanations, facts, definitions, simple current-state answers, usage guidance, and option comparisons that can end with the answer are answered directly without creating a Task. Requests to investigate and deliver, design and write back, modify code or documentation, fix behavior, verify results, synchronize `codestable/`, or advance or close an existing entity enter the Task spine as Issues:
 
 ```text
 create or resume Task
@@ -103,7 +105,7 @@ create or resume Task
   -> archive atomically and verify no matching active Task remains
 ```
 
-The Task List is the source of truth; an agent's native Todo or Tasks view is only a runtime mirror. “No Issue,” “no ff,” “read-only,” and “small change” may reduce business artifacts, but they never bypass Task creation, updates, completion, and archive. `completed` is only a pre-archive state. Closure requires a valid document under `codestable/tasks/archived/`, no matching active document, and a conflict-free scan.
+If the distinction is unclear, use AskQuestion before creating a Task and let the user choose; never promote a Question merely because it uses `/cs`, includes a code path, or names a technology. The Task List is the source of truth; an agent's native Todo or Tasks view is only a runtime mirror. For a confirmed Issue, “No Issue,” “no ff,” “read-only,” and “small change” may reduce business artifacts, but they never bypass Task creation, updates, completion, and archive. `completed` is only a pre-archive state. Closure requires a valid document under `codestable/tasks/archived/`, no matching active document, and a conflict-free scan.
 
 Archived filenames use `YYYY-MM-DD-NNN-{task}.md`. `NNN` is a three-digit sequence shared by every Task archived on that date; it resets to `001` each day and increases in actual archive order.
 
@@ -153,7 +155,7 @@ Design does not write unread areas as settled conclusions. Do writes back small 
 | Cross-module or multi-batch change with an evolving bounded specification | Epic Spec; clear slices may advance directly inside it or use Issues when useful |
 | Complex current path, conflicting evidence, or understanding worth reusing | Explore Issue |
 
-Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. The Task runtime ledger remains mandatory. Completing implementation is not closing work. An Issue or Epic closes only when authorization was obtained before Task creation; otherwise it stays open without another question. Task archive is the mechanical closure of every workflow, not the closing of an Issue or Epic or a move to `done/`.
+Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. For a confirmed Issue, the Task runtime ledger remains mandatory. Completing implementation is not closing work. An Issue or Epic closes only when authorization was obtained before Task creation; otherwise it stays open without another question. Task archive is the mechanical closure of every Issue workflow, not the closing of an Issue or Epic or a move to `done/`.
 
 ### Graduate reusable understanding to the right layer
 
@@ -205,7 +207,7 @@ your-project/
     ├── notes/                  # Reusable knowledge
     │   └── {NNN}-{name}.md
     ├── tools/                  # Stable tools for proven workflows
-    └── tasks/                  # Runtime ledger for every posture
+    └── tasks/                  # Runtime ledger for confirmed Issues
         ├── active/{task}.md
         └── archived/YYYY-MM-DD-NNN-{task}.md
 ```
@@ -243,11 +245,6 @@ Issues and feedback from real development and refactoring work are welcome.
 ---
 
 ## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=codestable/CodeStable-Lite&type=date&legend=top-left)](https://www.star-history.com/?repos=codestable%2FCodeStable-Lite&type=date&legend=top-left)
-
 <div align="center">
-
 MIT License · by [@liuzhengdong](https://github.com/liuzhengdongfortest)
-
 </div>

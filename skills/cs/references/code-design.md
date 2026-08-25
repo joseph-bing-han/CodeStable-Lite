@@ -1,6 +1,6 @@
 # 原则：代码与模块设计
 
-本原则及其 Review 章节继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)。只读 Review 也必须创建、更新、完成并归档 Task；是否修改代码、是否另建 Issue 与 Task 无关。
+本原则及其 Review 章节继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)。仅询问设计原则时直接回答且不创建 Task；受托执行只读 Review 也必须创建、更新、完成并归档 Task；是否修改代码、是否另建业务 Issue 与 Task 无关。
 
 好的结构，是让调用方用更少的认知，换到更多的能力。设计模块时，核心方向只有一个：往深里做。
 

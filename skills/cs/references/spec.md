@@ -1,6 +1,6 @@
 # Spec：维护当前真相与活规格
 
-本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：规格维护也必须创建、批次更新并归档 Task；计划确定后自动处理证据冲突和同步范围。
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：询问现有规格时直接回答且不创建 Task；规格维护属于 Issue 时，必须创建、批次更新并归档 Task，计划确定后自动处理证据冲突和同步范围。
 
 把当前现实或有边界的变化写进正确层级：项目主线进入 `codestable/spec/`，大需求活规格边界进入 `codestable/epics/{NNN}-o-{名称}/spec.md`。目标应用全景由 Vision 模式维护，不写进 Project Spec。
 

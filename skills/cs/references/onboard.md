@@ -1,6 +1,6 @@
 # Onboard：接入 CodeStable
 
-本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：完整 workspace 初始化前先由 Task runtime 按需创建 `codestable/tasks/`；初始化批次完成后更新并归档同一 Task。
+本姿态继承 [Task 主线](task.md) 与 [计划后自治](autonomy.md)：询问接入方法时直接回答且不创建 Task；确认执行完整 workspace 初始化后，先由 Task runtime 按需创建 `codestable/tasks/`，初始化批次完成后更新并归档同一 Task。
 
 ## 背景
 

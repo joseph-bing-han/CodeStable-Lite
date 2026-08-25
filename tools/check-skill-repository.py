@@ -223,9 +223,13 @@ def check_ui_spec_contract(root: Path, findings: list[Finding]) -> None:
 
 def check_readmes(root: Path, findings: list[Finding]) -> None:
     required = [
-        "npx skills add codestable/CodeStable-Lite",
+        "https://github.com/joseph-bing-han/CodeStable-Lite",
         "npx skills add . --list",
         "npx skills update cs",
+    ]
+    required_install_commands = [
+        "npx skills add joseph-bing-han/CodeStable-Lite",
+        "npx skills add joseph-bing-han/CodeStable-Lite -g",
     ]
     required_markers = {
         "README.md": ["ISO/IEC 25010:2023", "## 实现如何保持经济性", "## UI 规格如何使用图"],
@@ -238,34 +242,48 @@ def check_readmes(root: Path, findings: list[Finding]) -> None:
         ".claude-plugin",
         "marketplace",
     ]
+    obsolete_install_commands = ["npx skills add codestable/CodeStable-Lite"]
     for filename in ["README.md", "README.en.md"]:
         path = root / filename
         if not path.is_file():
             findings.append(Finding(filename, "file is missing"))
             continue
         text = path.read_text(encoding="utf-8")
+        documented_lines = {line.strip() for line in text.splitlines()}
         for command in required:
             if command not in text:
                 findings.append(Finding(filename, f"missing documented command: {command}"))
+        for command in required_install_commands:
+            if command not in documented_lines:
+                findings.append(Finding(filename, f"missing exact install command: {command}"))
         for marker in required_markers[filename]:
             if marker not in text:
                 findings.append(Finding(filename, f"missing documented contract: {marker}"))
         for marker in obsolete:
             if marker in text:
                 findings.append(Finding(filename, f"obsolete plugin documentation remains: {marker}"))
+        for command in obsolete_install_commands:
+            if command in text:
+                findings.append(Finding(filename, f"obsolete install command remains: {command}"))
 
 
 def check_task_contract(root: Path, findings: list[Finding]) -> None:
     skill = root / "skills/cs"
     required_markers = {
         "SKILL.md": [
-            "全部姿态强制 Task 主线",
+            "Issue 姿态进入 Task 主线",
+            "简单 Question 直接回答，不创建 Task",
+            "无法识别是 Question 还是 Issue 时，必须在创建 Task 前用 AskQuestion 确认",
             "创建或恢复 Task",
             "每个可观察批次",
             "原子归档",
             "禁止再次 AskQuestion",
         ],
         "references/task.md": [
+            "Issue，不是 Question",
+            "简单的 **Question** 是直接问答，不创建 Task",
+            "必须在创建 Task 前调用 `AskQuestion`",
+            "Question 路径不扫描或恢复 Task",
             "Task List 是 source of truth",
             "codestable/tasks/active/",
             "codestable/tasks/archived/",
@@ -276,6 +294,8 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
             "`completed` 不是最终状态",
         ],
         "references/autonomy.md": [
+            "简单 Question 直接回答，不创建 Task",
+            "无法可靠判断是 Question 还是 Issue，必须在 Task 创建前使用 AskQuestion",
             "计划确定前",
             "计划确定后",
             "禁止再次调用 AskQuestion",

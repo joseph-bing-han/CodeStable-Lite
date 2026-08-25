@@ -1,16 +1,33 @@
-# Task：全部姿态的强制运行账本
+# Task：需要执行的工作运行账本
 
 Task 是 `cs` 单一入口内的横切运行主线，不是新的 Skill，也不替代 Vision、Project Spec、Epic、Issue、Explore、Talk 或 `ff`。这些实体记录软件理解与演化边界；Task 只记录本次工作如何创建、推进、恢复和闭环。
 
+本文中的 **Issue** 表示“需要推进的工作”这一行动分类，不代表每次都要创建 `codestable/issues/` 下的业务 Issue 文档；业务实体仍按当前姿态和管理强度决定。
+
 **Task List 是 source of truth**；Agent 原生 Todo / Tasks 只是运行时镜像。Task 文件先更新，原生任务视图后同步。原生视图不可用时继续以 Task 文件推进，不得只更新原生视图。
 
-## 1. 适用边界：所有姿态
+## 1. 适用边界：Issue，不是 Question
 
-除尚未形成可执行目标的 intake 澄清外，所有姿态都必须走 Task 生命周期，包括：接入、讨论整理、愿景、规格、理解现状、修 bug、设计、快交付、受管理实现、收尾、只读 Review、记知识和学流程。
+Task 只服务于需要推进、验证、写回或留痕的 **Issue**。简单的 **Question** 是直接问答，不创建 Task，也不为了记录问答而创建空壳 Task。
 
-- 可以在**计划确定前**使用 AskQuestion 澄清目标、边界和验收。
-- 一旦能写出本次目标与步骤，就先创建或恢复 Task，再开始读取仓库、分析、设计、写文档、改代码或 Review。
-- Task 创建是机械 gate，不询问是否创建；“不要痕迹”“只读”“小改”“不用 issue”都不能豁免。
+### 1.1 先判定 Question 还是 Issue
+
+- **Question**：用户主要要获得解释、事实、定义、现状说明、使用建议或方案比较；回答本身即可结束，不需要修改代码或文档，不需要验证运行结果，也不需要跨回合推进。
+- **Issue**：用户要求或明确暗示需要执行可观察工作，例如调查并交付结论、设计并落盘、修改代码或文档、修复问题、运行验证、同步 `codestable/`、推进或关闭已有实体；这类工作创建或恢复 Task。
+- **Question 中包含代码片段、文件路径或技术名词，不会因此自动变成 Issue**。判断依据是用户要“知道什么”还是要“完成什么”。
+- **简单现状询问仍是 Question**：只要交付目标是解释当前机制，而不是生成可复用 Explore 产物或推进改变，就不创建 Task。
+
+### 1.2 无法判定时先确认
+
+如果根据用户原话和已有上下文无法可靠区分 Question 与 Issue，必须在创建 Task 前调用 `AskQuestion`，让用户选择“只回答这个问题（Question，不创建 Task）”或“把它作为需要推进的工作（Issue，创建 Task）”。推荐项应放在首位，并说明判断依据；不得猜测后直接创建 Task。
+
+用户明确要求 `/cs`、CodeStable、整理、设计、实现、修复、Review、关闭或其他具体执行动作时，按 Issue 处理；仅使用“怎么回事”“是什么”“为什么”“如何使用”等询问表达且没有执行暗示时，按 Question 处理。
+
+### 1.3 Issue 的 Task gate
+
+Issue 可以属于接入、讨论整理、愿景、规格、理解现状、修 bug、设计、快交付、受管理实现、收尾、只读 Review、记知识和学流程等不同姿态；一旦确认是 Issue 且目标与步骤足以开工，就先创建或恢复 Task，再开始读取仓库、分析、设计、写文档、改代码或 Review。
+
+- Task 创建是 Issue 的机械 gate，不再询问“是否创建 Task”；“不要痕迹”“只读”“小改”“不用业务 issue”都不能豁免。
 - 只操作 Task 自身时更新当前 Task，不递归创建“管理 Task 的 Task”。这不是例外，而是同一生命周期的内部动作。
 
 ## 2. 目录与命名
@@ -131,7 +148,15 @@ archive 再次校验调用方提供的 source hash，把 active 正本改写为 
 ## 6. 全流程 spine
 
 ```text
-intake / 必要澄清
+Question
+  -> 有界只读理解（按需）
+  -> 直接回答（不创建 Task）
+
+无法判定 Question / Issue
+  -> Task 创建前调用 AskQuestion
+  -> 选择 Question 或 Issue 路径
+
+Issue intake / 必要澄清
   -> 形成目标与计划
   -> 创建或恢复 active Task
   -> 同步 Agent 原生 Tasks
@@ -147,9 +172,11 @@ intake / 必要澄清
 
 “可观察批次”是能独立说明输入、动作和结果的一组工作，例如完成一次调查、实现一个垂直切片、处理一轮 review findings、完成一组文档同步或跑完一轮验证。不要把每个文件编辑拆成一个批次，也不要跨多个已完成批次不更新。
 
+Question 路径可以进行必要的有界只读读取，但不得为了回答问题创建或更新 Task、Issue、ff、Talk、Note 或其他持久化产物。若回答过程中发现需要跨回合推进、生成可复用调查产物、修改文件或运行必须留证的验证，应在进入该工作前重新执行 Question / Issue 判定；无法判定时使用 AskQuestion。
+
 ## 7. 恢复与冲突
 
-1. 开始 substantive work 前同时扫描 active 与 archived。
+1. 开始 Issue 型 substantive work 前同时扫描 active 与 archived；Question 路径不扫描或恢复 Task。
 2. 唯一匹配 active Task：恢复第一个未完成步骤，在当前 run 继续。
 3. 没有 active 且已有 archived：不得复活；新目标使用新 slug。
 4. 多个 active 都可能匹配时，不在计划后询问用户；按目标文本、related docs、最近更新时间和当前诉求确定最匹配项。仍无法唯一确定时，为当前明确目标创建新 slug，不覆盖旧 Task。
