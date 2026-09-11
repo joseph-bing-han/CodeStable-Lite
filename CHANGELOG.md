@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1
+
+- Added an explicit retention checkpoint so verified independent Issue facts synchronize to Project Spec, Epic work synchronizes to Epic Spec, and Epic closure is the authorized graduation step into Project Spec.
+- Added automatic checks for converged Talks, reusable Notes, and stable repeatable Tools, with evidence and non-applicability recorded instead of silently dropping the result.
+- Added GPT-6 Astra host-adaptation guidance for necessary clarification, user steering, subagent delegation, async tools, reasoning configuration, monitoring, and scoped verification; documented that model capabilities do not create unavailable host tools.
+- Fixed the Task CLI progress-only update path so `--replacements-json` is optional and distinguished ordinary unattended progress from necessary clarification or authorization.
+
 ## Unreleased
 
 - Narrowed the Task gate to confirmed Issues: simple Questions are answered directly without creating Tasks, and ambiguous Question-versus-Issue intent must be resolved with AskQuestion before Task creation.

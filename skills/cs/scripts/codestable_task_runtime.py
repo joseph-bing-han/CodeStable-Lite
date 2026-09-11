@@ -1847,7 +1847,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
     update_parser = command_parsers.add_parser("update", help="Apply guarded Task replacements.")
     update_parser.add_argument("--task", required=True)
     update_parser.add_argument("--expected-sha256", required=True)
-    update_parser.add_argument("--replacements-json", required=True)
+    update_parser.add_argument(
+        "--replacements-json",
+        default="{}",
+        help="Optional JSON object of guarded text replacements.",
+    )
     update_parser.add_argument("--record", required=True)
     update_parser.add_argument("--date")
 
@@ -1904,7 +1908,8 @@ def main() -> int:
                     "path": created_path.relative_to(root.resolve()).as_posix(),
                     "plan_committed": True,
                     "execution_mode": "unattended",
-                    "questions_allowed": False,
+                    "ordinary_questions_allowed": False,
+                    "necessary_clarification_or_authorization_allowed": True,
                     "next_action": "continue-first-incomplete-step",
                 }
             )

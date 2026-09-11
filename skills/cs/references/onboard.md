@@ -12,7 +12,7 @@ Onboard 模式负责把 CodeStable 的本地工作区放进项目：创建 `code
 
 onboard 可以观察项目，但不能编项目。能从代码、README、配置、测试和 git 历史推断的，只能作为候选事实或下一步建议；业务目标、路线图、明确不做什么、用户故事和长期取舍，除非已有文档证据或用户确认，否则不要写进 `codestable/`。
 
-默认不覆盖已有文件。只有用户在计划确定前明确要求重置 `codestable/vision/index.md` 与 `codestable/spec/index.md`，才把 `--force` 与覆盖范围写入 Task；Task 创建后按该授权执行，不再次确认。
+默认不覆盖已有文件。只有用户明确要求重置 `codestable/vision/index.md` 与 `codestable/spec/index.md`，才把 `--force` 与覆盖范围写入 Task；Task 创建后按该授权执行。为实现验证后维护已有 Project Spec 而补建缺失的最小 `spec/index.md`，不等同于初始化或覆盖，仍须遵守 retention 的内容与安全边界。
 
 发现旧版 `.cs/` 工作区时，不能静默再创建 `codestable/`：迁移授权必须在 Task 创建前收束，获授权后才带 `--migrate-legacy` 运行初始化脚本。若两个目录同时存在，视为无法安全自动合并的外部数据冲突：不移动或覆盖任一目录，在 Task 中记录 blocked 证据并结束可安全执行的检查，不在计划后要求用户选择路线，也不伪造初始化完成。
 

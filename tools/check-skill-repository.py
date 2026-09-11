@@ -77,6 +77,8 @@ def required_skill_files(root: Path) -> list[Path]:
             "talk.md",
             "task.md",
             "autonomy.md",
+            "retention.md",
+            "runtime-adaptation.md",
             "ui-spec.md",
             "vision.md",
         ]
@@ -277,7 +279,7 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
             "创建或恢复 Task",
             "每个可观察批次",
             "原子归档",
-            "禁止再次 AskQuestion",
+            "不询问普通推进，只询问必要澄清与授权",
         ],
         "references/task.md": [
             "Issue，不是 Question",
@@ -298,10 +300,11 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
             "无法可靠判断是 Question 还是 Issue，必须在 Task 创建前使用 AskQuestion",
             "计划确定前",
             "计划确定后",
-            "禁止再次调用 AskQuestion",
+            "不询问普通推进，只询问必要澄清与授权",
             "自动选择推荐方向",
             "可逆性",
             "总成本",
+            "用户中途纠正优先于旧计划",
         ],
     }
     for relative_path, markers in required_markers.items():
@@ -334,6 +337,28 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
         path = skill / "references" / filename
         if path.is_file() and "[Task 主线](task.md)" not in path.read_text(encoding="utf-8"):
             findings.append(Finding(rel(path, root), "does not inherit the mandatory Task spine"))
+
+    retention_path = skill / "references/retention.md"
+    if retention_path.is_file():
+        retention_text = retention_path.read_text(encoding="utf-8")
+        for marker in [
+            "独立 Issue / 无业务 Issue",
+            "Epic 内 Issue / 直接切片",
+            "Epic 经用户确认关闭",
+            "讨论收束：自动捕获 Talk",
+            "验证之后：自动提炼 Note",
+            "重复流程：有证据才生成 Tool",
+            "无增量原因",
+        ]:
+            if marker not in retention_text:
+                findings.append(Finding(rel(retention_path, root), f"missing retention contract: {marker}"))
+
+    adaptation_path = skill / "references/runtime-adaptation.md"
+    if adaptation_path.is_file():
+        adaptation_text = adaptation_path.read_text(encoding="utf-8")
+        for marker in ["检查当前宿主实际提供的工具 schema", "不能从模型名称推导工具可用"]:
+            if marker not in adaptation_text:
+                findings.append(Finding(rel(adaptation_path, root), f"missing host adaptation contract: {marker}"))
 
     initialization_path = skill / "scripts/init_codestable.py"
     if initialization_path.is_file():

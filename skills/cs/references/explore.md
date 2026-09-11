@@ -38,7 +38,7 @@
 |---|---|---|
 | 何时 | 相关路径能用紧凑叙事讲清 | 讲不清、跨多边界、证据冲突、需多篇路径文、或理解将被多处复用 |
 | 写哪 | 对话 / 目标 issue 的 `## 现状如何工作`（及有变化时的 `## 影响范围`） | `codestable/issues/{NNN}-o-{名称}/` |
-| 关闭 | 随目标 issue 或直接进入 Design / Do | 计划前已授权时 Close：稳定现状机制说明毕业到 Project Spec；未授权则只完成当前 Task |
+| 关闭 | 随目标 issue 或直接进入 Design / Do | 验证后按归属同步稳定现状；有关闭授权时 Close 并完成状态迁移与毕业 |
 
 ## 行动指南
 
@@ -92,7 +92,7 @@
 可停止当：能讲清触发—过程—结果；相关责任/数据/状态/分支有证据；未知显式标出；有变化时影响已分层。
 
 - 现状说明 → 继续 Design / Do（或 Complain 诊断）。
-- Explore issue → 只有计划前已获关闭授权才走 [close](close.md)：稳定现状机制说明按渐进式披露合并到 Project Spec；未授权则保留 open，完成并归档当前 Task，不在计划后补问。
+- Explore issue → 验证完成后按 [自动回写与沉淀](retention.md) 将稳定现状同步到所属 Epic Spec 或独立 Project Spec；只有执行业务关闭时才走 [close](close.md)。未授权关闭则保留 open，完成并归档当前 Task；不把关闭授权当作事实回写的前置。
 
 ## 收尾汇报
 

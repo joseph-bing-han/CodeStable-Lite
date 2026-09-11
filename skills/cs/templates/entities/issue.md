@@ -57,6 +57,7 @@ type: feature | bug | chore | refactor
 
 ## 关闭时
 
-- 回写到 project/epic spec 或 notes 的候选：
+- 实际回写 / 毕业候选：独立 Issue → Project Spec；Epic 内 Issue → Epic Spec；Epic 关闭后 → Project Spec。写具体结论、目标章节与验证依据；若无规格增量，说明原因。
+- 沉淀检查：Talk / Note / Tool 的已更新位置，或不满足条件的原因：
 - 关闭判断与验证摘要：
 - 遗留：

@@ -1375,7 +1375,32 @@ class TaskRuntimeTests(unittest.TestCase):
         create_payload = json.loads(create_result.stdout)
         self.assertTrue(create_payload["plan_committed"])
         self.assertEqual(create_payload["execution_mode"], "unattended")
-        self.assertFalse(create_payload["questions_allowed"])
+        self.assertFalse(create_payload["ordinary_questions_allowed"])
+        self.assertTrue(create_payload["necessary_clarification_or_authorization_allowed"])
+
+        update_result = subprocess.run(
+            [
+                "python3",
+                str(RUNTIME_PATH),
+                "--root",
+                str(created_root),
+                "update",
+                "--task",
+                "unattended-create",
+                "--expected-sha256",
+                task_runtime.calculate_sha256(
+                    created_root / "codestable/tasks/active/unattended-create.md"
+                ),
+                "--record",
+                "Recorded a progress-only batch without replacements.",
+                "--date",
+                "2026-07-29",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(update_result.returncode, 0)
 
         successful_scan = subprocess.run(
             ["python3", str(RUNTIME_PATH), "--root", str(created_root), "scan"],

@@ -113,7 +113,7 @@ For existing `YYYY-MM-DD-{task}.md` archives, run `python3 <cs-skill>/scripts/co
 
 The Lite runtime permits only `tasks/active/` and `tasks/archived/`. Create and archive use exclusive publication that never overwrites existing evidence; scan treats extra directories, noncanonical files, and symlinks as failures. Archive records its source snapshot hash, so the original command can be replayed safely if a success response is lost. If an active path is recreated after archive, archive or cleanup removes it only when its content matches either the unique valid archive or that archive's recorded source snapshot; divergent duplicates stay fail-closed.
 
-Before plan commitment, structured questions may clarify the goal, boundary, acceptance, and irreversible authorization. Once the plan is written to the Task, execution becomes unattended: the agent no longer asks people to select ordinary implementation branches. It chooses the recommended direction by contract consistency, risk, reversibility, evidence strength, and total cost, resolves failures, and continues until the plan, verification gates, and Task archive are complete.
+Before plan commitment, structured questions may clarify the goal, boundary, acceptance, and authorization. Once the plan is written to the Task, execution becomes unattended: the agent does not ask about ordinary progress, and asks only when an unverified gap would change the goal, correctness, or authority. It chooses the recommended direction by contract consistency, risk, reversibility, evidence strength, and total cost, resolves failures, performs the retention check, and continues until the plan, verification gates, and Task archive are complete. User corrections supersede affected prior direction; host capabilities must be checked from actual tool schemas, not inferred from a model name.
 
 ### Locate change in a four-layer world model
 
@@ -155,13 +155,13 @@ Design does not write unread areas as settled conclusions. Do writes back small 
 | Cross-module or multi-batch change with an evolving bounded specification | Epic Spec; clear slices may advance directly inside it or use Issues when useful |
 | Complex current path, conflicting evidence, or understanding worth reusing | Explore Issue |
 
-Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. For a confirmed Issue, the Task runtime ledger remains mandatory. Completing implementation is not closing work. An Issue or Epic closes only when authorization was obtained before Task creation; otherwise it stays open without another question. Task archive is the mechanical closure of every Issue workflow, not the closing of an Issue or Epic or a move to `done/`.
+Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. For a confirmed Issue, the Task runtime ledger remains mandatory. After verified implementation, stable facts from an independent Issue are synchronized to the Project Spec, Epic work is synchronized to the Epic Spec, and reusable Talk, Note, and Tool outputs are checked; this does not change business status. Issue/Epic closure and Epic graduation still require the relevant authorization; otherwise they remain open. Task archive is the mechanical closure of every Issue workflow, not the closing of an Issue or Epic or a move to `done/`.
 
 ### Graduate reusable understanding to the right layer
 
 An Issue is not merely a to-do. It is a reviewable software-evolution transaction with a defined cognitive starting point, limited attention boundary, and end condition. It keeps investigation, design, implementation, and verification inside one change boundary.
 
-At close, process, failed attempts, and evidence remain with the Issue or Epic. Only verified conclusions that still hold graduate:
+During implementation and close, process, failed attempts, and evidence remain with the Issue or Epic. Verified stable facts synchronize by ownership; an Epic graduates its stable conclusions to the Project Spec only after the user authorizes Epic closure:
 
 ```text
 Independent Issue   → Project Spec
@@ -170,7 +170,7 @@ Explore Issue      → Stable current-state explanation in Project Spec
 Closed Epic        → Project Spec, then check realization state in Vision
 ```
 
-The next round therefore reads usable current understanding rather than guessing what remains valid from old history.
+Talk captures a converged discussion, Note captures reusable cross-item knowledge, and Tool captures automation that has run successfully, is stable and repeatable, and preserves required authorization. Each related work item checks these exits and records why an artifact is not applicable or is not yet verified. The next round therefore reads usable current understanding rather than guessing what remains valid from old history.
 
 ## How quality stays coherent
 
@@ -219,7 +219,7 @@ Lite uses a single-writer Task model and does not create locks, staging, tombsto
 - `NNN` increments independently within the issues, epics, notes, and talks trees. Items under `done/` count too.
 - Closing changes only `-o-` to `-x-`; the number and name remain unchanged.
 - A closed Issue or Epic moves to its `done/` subdirectory only when the user explicitly requests organization; it remains searchable.
-- A Talk is not written before plan commitment. Vision target content, Epic closing, and dangerous operations also retain explicit human authorization before commitment. Ordinary execution branches do not reopen confirmation after a Task starts.
+- A Talk is written when discussion has converged and is entering action or when the user asks to capture it. Vision target rewrites, Epic closing, and dangerous operations retain explicit human authorization before the actual write or action. Ordinary execution branches do not reopen confirmation after a Task starts; necessary clarification and authorization can still be requested.
 - A legacy `.cs/` workspace is never silently copied. After confirming migration, run `python skills/cs/scripts/init_codestable.py --migrate-legacy`; if both `.cs/` and `codestable/` exist, reconcile them manually first.
 
 ## People retain control of state transitions

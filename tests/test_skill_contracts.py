@@ -103,6 +103,7 @@ class SkillContractTests(unittest.TestCase):
             "duplicate-task-state",
             "`completed` 不是最终状态",
             "Issue 可以属于接入、讨论整理、愿景、规格",
+            "自动回写与沉淀",
         )
         for required_marker in required_markers:
             with self.subTest(required_marker=required_marker):
@@ -115,12 +116,13 @@ class SkillContractTests(unittest.TestCase):
             "无法可靠判断是 Question 还是 Issue，必须在 Task 创建前使用 AskQuestion",
             "计划确定前",
             "计划确定后",
-            "禁止再次调用 AskQuestion",
+            "不询问普通推进，只询问必要澄清与授权",
             "自动选择推荐方向",
             "可逆性",
             "契约一致性",
             "总成本",
             "持续执行直到",
+            "用户中途纠正优先于旧计划",
         )
         for required_marker in required_markers:
             with self.subTest(required_marker=required_marker):
@@ -221,6 +223,38 @@ class SkillContractTests(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, task_text)
+
+    def test_retention_contract_has_explicit_graduation_and_auxiliary_triggers(self) -> None:
+        retention_text = read_text("skills/cs/references/retention.md")
+        required_markers = (
+            "独立 Issue / 无业务 Issue",
+            "Epic 内 Issue / 直接切片",
+            "Epic 经用户确认关闭",
+            "讨论收束：自动捕获 Talk",
+            "验证之后：自动提炼 Note",
+            "重复流程：有证据才生成 Tool",
+            "无增量原因",
+        )
+        for required_marker in required_markers:
+            with self.subTest(required_marker=required_marker):
+                self.assertIn(required_marker, retention_text)
+
+    def test_host_adaptation_does_not_infer_tools_from_model_name(self) -> None:
+        adaptation_text = read_text("skills/cs/references/runtime-adaptation.md")
+        self.assertIn("检查当前宿主实际提供的工具 schema", adaptation_text)
+        self.assertIn("不能从模型名称推导工具可用", read_text("skills/cs/SKILL.md"))
+
+    def test_graduation_does_not_turn_task_completion_into_business_closure(self) -> None:
+        retention_text = read_text("skills/cs/references/retention.md")
+        self.assertIn("实现完成不自动关闭常规 Issue", retention_text)
+        self.assertIn("未关闭 Epic 的成果不得提前毕业到 Project Spec", retention_text)
+        self.assertIn("若 Epic 已满足关闭条件，主动呈现具体毕业候选", retention_text)
+
+    def test_reusable_artifact_rules_reject_unverified_or_one_off_outputs(self) -> None:
+        retention_text = read_text("skills/cs/references/retention.md")
+        self.assertIn("普通测试通过、代码已直说的行为、一次性进度和尚未验证的猜测不生成 Note", retention_text)
+        self.assertIn("仅一次探索、仍需人判断的流程、超出当前范围的大型自动化", retention_text)
+        self.assertIn("验证不了就不能标“稳定工具”", retention_text)
 
     def test_archive_is_a_lifecycle_action_not_a_task_plan_item(self) -> None:
         task_text = read_text("skills/cs/references/task.md")

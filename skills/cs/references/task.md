@@ -21,7 +21,7 @@ Task 只服务于需要推进、验证、写回或留痕的 **Issue**。简单�
 
 如果根据用户原话和已有上下文无法可靠区分 Question 与 Issue，必须在创建 Task 前调用 `AskQuestion`，让用户选择“只回答这个问题（Question，不创建 Task）”或“把它作为需要推进的工作（Issue，创建 Task）”。推荐项应放在首位，并说明判断依据；不得猜测后直接创建 Task。
 
-用户明确要求 `/cs`、CodeStable、整理、设计、实现、修复、Review、关闭或其他具体执行动作时，按 Issue 处理；仅使用“怎么回事”“是什么”“为什么”“如何使用”等询问表达且没有执行暗示时，按 Question 处理。
+用户要求整理、设计并交付、实现、修复、Review、关闭或其他具体执行动作时，按 Issue 处理。“能不能帮我修好”是执行请求，不只回答“可以”；但 `/cs`、CodeStable、代码路径或技术名词本身不构成 Issue。“/cs 解释 Task”仍是 Question。结合上下文判断意图，不能仅靠关键词升级。
 
 ### 1.3 Issue 的 Task gate
 
@@ -141,6 +141,8 @@ Lite runtime 假定同一仓库同一时间只有一个 Task 写入者。创建 
 
 `create` 要求至少一个实际工作步骤。checklist 与执行步骤的标题、顺序和完成进度必须一一对应：`[x]` 只对应 `done`，未勾选项只对应 `pending / in-progress / blocked`。`update` 可以执行受保护文本替换，也可以只追加一个证据批次记录；两种形式都必须提供当前 SHA-256。`write-active` 和 `update` 不允许删除、重命名或重排已承诺步骤，也不允许绕过状态机修改受保护字段。阻塞、恢复或取消使用显式 `set-status`，且目标状态必须不同于当前状态；完成使用 `complete`。`complete` 只接受 checklist 全部勾选且执行步骤全部为 `done` 的 Task。进入 `completed / cancelled` 后正文冻结，只能归档。
 
+用户中途变更按 [autonomy](autonomy.md) 处理：补充细节可更新原 Task；必须替换承诺步骤时取消并归档旧 Task、关联新 Task，不伪造 done。原生 Todo 不支持 blocked 时，未完成步骤映射为 pending 并在内容标阻塞；Task 正本保留真实状态。runtime 不会调用宿主 Todo、管理子代理或判断规格毕业是否完成。
+
 **归档不是 Task 计划步骤。** checklist 和执行步骤不得包含“归档 Task / archive Task”之类的生命周期动作。实际工作步骤全部完成后，runtime 机械执行 `complete -> archive -> cleanup / scan`；archive 正本本身已经证明归档发生，无需再用一个待办记录它。
 
 archive 再次校验调用方提供的 source hash，把 active 正本改写为 archived schema，原子移动到私有 quarantine，再记录源快照 hash 并以独占硬链接发布 archived 正本；原命令重放可以收敛 quarantine 移动后或 archive 发布后的中断。目标已存在时不会覆盖证据。若 active 在归档后被旧写入者重建，`cleanup` 会判断它是否与 archived 记录的源快照或归档正文完全一致；一致时清理这份残留，不一致时保留双方证据并报告 `duplicate-task-state`。删除前会持有文件描述符并复核 device、inode、size、mtime 与 hash；本模型仍以单写者为前提，不承诺抵御另一个不合作进程在最终系统调用窗口内替换私有 quarantine。`scan` 只负责验证状态，不执行删除。
@@ -163,6 +165,7 @@ Issue intake / 必要澄清
   -> 执行一个可观察批次
   -> 先更新 Task，再继续
   -> 验证 / Review / 修复循环
+  -> 自动回写与沉淀检查（业务授权范围内，记录结果或不适用依据）
   -> 全部目标与 gate 完成
   -> Task 标记 completed
   -> 立即原子归档
@@ -191,8 +194,9 @@ Task 进入 `completed` 前必须满足：
 
 - Task 同步区和执行步骤全部完成；
 - 本次目标的实现、文档或只读交付物已完成；
-- 必要测试、静态检查、Review、QA 或 Agent 可执行且可观察判定的验收已通过；用户人工验收仅在 Task 创建前明确纳入时才是完成条件，计划后不得临时新增；
+- 必要测试、静态检查、Review、QA 或 Agent 可执行且可观察判定的验收已通过；不临时添加无依据的人工验收，用户中途明确新增的验收与必要授权按自治契约处理；
 - 相关 canonical 文档已同步，不存在同一契约两套表述；
+- 已执行 [自动回写与沉淀](retention.md)：规格回写、Talk、Note、Tool 的实际位置或无增量/待授权依据已记入现有正本；不得用 Task 归档代替业务回写；
 - 没有未处理的 blocking finding；
 - 没有计划内待办或确定性的下一动作。
 

@@ -20,7 +20,7 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 先用自然、简短的话说清**结论和原因**，优先使用用户正在使用的词；不要一上来抛框架、术语、章节或长清单。只有用户明确要求、需要做取舍/授权，或必须给出验证与风险证据时，才展开实现安排、规则与细节。简短不是省略关键判断：先让用户容易听懂，再按需下钻。
 
-### 节省上下文（Codex）
+### 节省上下文（所有宿主）
 
 同一会话中，已经完整读取且没有变化的 `SKILL.md`、reference、template 或相邻说明，必须复用既有理解，不要重复读取。仅在用户要求重读、文件已变化，或当前理解不足以支撑判断时，读取相关最小范围。
 
@@ -35,13 +35,13 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 1. 扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task；
 2. 以 Task 正本同步 Agent 原生 Tasks，在当前 run 开始工作；
 3. 每个可观察批次完成后，先用 SHA-256 陈旧快照保护更新 Task，再继续下一批；
-4. 自动完成分析、设计、实现或只读交付、验证、必要 Review 与修复循环；
+4. 自动完成分析、设计、实现或只读交付、验证、必要 Review 与修复循环；讨论转入行动、实现验证结束、关闭及 Task 完成前，执行 [自动回写与沉淀](references/retention.md)，命中才读对应细则；
 5. 全部完成后把 Task 标记 completed，立即原子归档并 cleanup；
 6. 只有 archived 正本 schema 有效、active 同名文件不存在且 scan 无冲突，才能给出完成式最终答复。
 
 Task 不能被 Issue 的无痕模式豁免。“不要 issue / 不写 ff / 只读 / 小改”只影响业务实体和交付形式，不影响已确认 Issue 的 Task 创建、更新、完成与归档；“只在对话回答”若确实是 Question，则不创建 Task。Task 自身操作更新当前 Task，不递归创建第二个 Task。
 
-计划写入 active Task 后即进入无人值守：禁止再次 AskQuestion，也不要求用户选择实现路线或批准普通下一步；出现分叉、失败或范围内偏差时，按 autonomy 的契约一致性、风险、可逆性、证据与总成本排序自动选择推荐方向，更新 Task 后持续执行到全部工作完成。
+计划写入 active Task 后即进入无人值守：不询问普通推进，只询问必要澄清与授权；出现分叉、失败或范围内偏差时，按 autonomy 的契约一致性、风险、可逆性、证据与总成本排序自动选择推荐方向，更新 Task 后持续执行到全部工作完成。用户中途纠正优先于旧计划；真正缺授权或输入时保留 blocked 恢复点，不硬做、不伪装完成。首次需要并行、原生 Todo 或中途引导时按 [宿主适配](references/runtime-adaptation.md) 核对实际能力；不能从模型名称推导工具可用。
 
 ---
 
@@ -60,10 +60,10 @@ Task 不能被 Issue 的无痕模式豁免。“不要 issue / 不写 ff / 只�
 | **设计** | 怎么实现、先设计、实现方案 | [design](references/design.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 不写代码；高风险标穿刺顺序 |
 | **快交付** | 快速、快改、小改一下、直接开干、别走流程 | [fast](references/fast.md) | [economy](references/economy.md)；必要时 [quality](references/quality.md)；UI → [ui-spec](references/ui-spec.md) | 轻检索 + 验证；`ff` 可按用户要求省略，已确认 Issue 的 Task 永不省略 |
 | **受管理实现** | 做这个 issue、推进 epic、实现（有档）、穿刺/先打通 | [do](references/do.md) | [code-design](references/code-design.md)、[economy](references/economy.md)、[quality](references/quality.md)；现状不清 → [explore](references/explore.md)；UI → [ui-spec](references/ui-spec.md) | 完成 ≠ 关闭；风险先穿刺再加厚 |
-| **收尾** | 关闭、收尾、做完并沉淀、毕业回写 | [close](references/close.md) | [docs](references/docs.md)、[quality](references/quality.md)；有界简化 → [economy](references/economy.md) | 须在 Task 创建前获得关闭授权；未授权保持 open 且不补问；**不**自动进 `done/` |
+| **收尾** | 关闭、收尾、做完并沉淀、毕业回写 | [close](references/close.md) | [docs](references/docs.md)、[quality](references/quality.md)；有界简化 → [economy](references/economy.md) | 关闭须授权；回写事实不等待关闭；**不**自动进 `done/` |
 | **审代码** | review、评审、看看这 diff/PR | [code-design](references/code-design.md)（文末 Review） | [economy](references/economy.md)；相关 → [quality](references/quality.md) | 用户点名才做；默认只审不改 |
 | **记知识** | 记一下坑、写 note | [note](references/note.md) | [docs](references/docs.md) | 同主题改原 note，不新建第二条 |
-| **学流程** | 我带你跑一遍、教 AI 做某流程 | [maketools](references/maketools.md) | [docs](references/docs.md) | 危险操作授权在 Task 创建前收束 |
+| **学流程** | 我带你跑一遍、教 AI 做某流程 | [maketools](references/maketools.md) | [docs](references/docs.md) | 危险操作执行前须授权；跑通后检查复用与工具化 |
 
 ### 怎样判断 Question / Issue 与姿态
 
@@ -102,7 +102,7 @@ Epic Spec（变化中的活规格） ──推进──> Epic Issues
         ▼
 Project Spec（当前现实）
 
-独立 Issue ─────────关闭毕业────────> Project Spec
+独立 Issue ─────验证后同步 / 关闭复核────> Project Spec
 ```
 
 Vision 保存目标世界；Epic 承载一段有边界的大变化；Issue 是可关闭的行动；Project Spec 只保存当前仍成立的现实。
@@ -200,10 +200,10 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 | 写入位置 | 时机 |
 |---|---|
-| Vision 目标内容 | 用户确认的愿景整理；实现结论要改目标时只在 Task 创建前确认，计划后记录差异并保持原目标 |
+| Vision 目标内容 | 用户确认后才修改目标；未授权时记录差异并保持原目标 |
 | Vision 实现程度/链接 | Epic **关闭**时按事实 |
-| Project Spec | 独立 issue/Explore **关闭**毕业；Epic **关闭**合并；快改真相失效；规格姿态维护 |
-| Epic Spec | 规格姿态；epic 下 issue 关闭回写 |
+| Project Spec | 独立实现验证后同步当前事实、关闭时复核毕业；独立 Explore 关闭毕业；Epic **关闭**合并；规格姿态维护 |
+| Epic Spec | 规格姿态；epic 下 issue 或直接切片验证后同步，关闭时复核 |
 | Issue / ff | 受管理推进；快改完成后写/关 `ff` |
 
 出现冲突时，按 `用户最新确认 > 证据与代码 > 疑似过期的 spec` 判断。Epic 与 Vision 不一致时，先说明这是收窄实现还是修改目标，不要静默绕过。
@@ -230,9 +230,9 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 - 独立 Issue → Project Spec。
 - Epic 内 Issue → Epic Spec。
 - Epic 关闭 → 将稳定结论的**具体内容**合并进 Project Spec，并检查 Vision；只链接 Epic 不算毕业回写。
-- `ff` 默认不做大段毕业；若现有真相失效，则同步 spec 或明确标记漂移。
+- `ff` 默认不做大段毕业；有规格增量或真相失效时按物理归属同步 Project / Epic Spec；无增量要有依据。
 
-详细规则见 [close](references/close.md)。
+实现完成前先按 [自动回写与沉淀](references/retention.md) 同步已验证事实，并检查 Talk、Note、Tool。关闭不再是知识回写的唯一触发点；Epic 毕业仍须用户确认。详细关闭规则见 [close](references/close.md)。
 
 ### 质量语言
 
@@ -263,7 +263,7 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 - 已确认是 Issue，且方向已确认、用户要求执行 → 创建 Task 并进入无人值守，推进到**完成并归档 Task**；不在任何普通步骤、方案分叉或失败修复间反复确认。
 - 确认前：讨论不落盘；设计不写代码。
-- 计划确定后：禁止再次 AskQuestion；按 [计划后自治](references/autonomy.md) 自动选择推荐方向并持续执行。
+- 计划确定后：不询问普通推进；必要澄清或授权仍可使用 AskQuestion，并按 [计划后自治](references/autonomy.md) 自动选择推荐方向、执行回写检查并持续推进。
 - 完成 ≠ 关闭；关闭 ≠ `done/`；Task 归档 ≠ 关闭业务实体。实现/快改后只执行风险需要的 Review，**不**自动 push。
 - 初始化 `codestable/`、覆盖入口、关 epic、危险操作、推送、部署：须明确授权。
 - 未在计划确定前获授权的不可逆动作不纳入计划；选择非破坏性方向完成其余目标，不在执行中再次询问。
