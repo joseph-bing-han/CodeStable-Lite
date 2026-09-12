@@ -8,6 +8,7 @@ related_issue: ""
 ---
 
 <!-- 本模板只用于 {NNN}-o|x-{name}/index.md 形式的 Explore Issue；普通 Issue 与 ff 必须是所属 issues 树下的单一 Markdown 文件。 -->
+<!-- Task 前先记录探索问题、边界、证据入口与停止条件，未知内容不伪装成结论。调查验证并归档 Task 后回写结果、相关 Spec 与最终状态；关闭改名时维护原路径和 Task archive，不修改冻结 Task。 -->
 
 # [探索标题]
 

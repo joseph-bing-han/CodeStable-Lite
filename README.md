@@ -97,15 +97,22 @@ CodeStable 的核心对象不是 Agent 编排，而是软件自身的状态、�
 先区分用户是在提问（Question）还是要求推进工作（Issue）。解释、事实、定义、简单现状说明、使用建议和方案比较，若回答本身即可结束，就直接回答，不创建 Task。用户要求调查并交付、设计并落盘、修改代码或文档、修复、验证、同步 `codestable/`、推进或关闭已有实体时，才按 Issue 进入 Task 主线：
 
 ```text
-创建或恢复 Task
-  -> 执行一个可观察批次
+用户提出问题 / 需求
+  -> 分析讨论并形成结论
+  -> 创建或更新相关 Issue / Spec 等前置文档
+  -> 创建或恢复 Task
+  -> 实施一个可观察批次
   -> 更新 Task
-  -> 继续实施、验证与必要修复
+  -> 测试 / 必要 Review（失败则返回修改、更新 Task 与复测）
   -> 标记 completed
   -> 原子归档并确认 active 无同名残留
+  -> 更新所有相关 Issue / Spec 等文档的结果、最终状态和链接
+  -> 回读确认后结束
 ```
 
-如果无法可靠判断 Question 还是 Issue，必须在创建 Task 前使用 AskQuestion 让用户选择；不得因为使用了 `/cs`、出现代码路径或提到技术名词，就把 Question 自动升级成 Task。Task List 是 source of truth，Agent 自带 Todo / Tasks 只是运行时镜像。对已经确认的 Issue，“不要 Issue / 不写 ff / 只读 / 小改”可以改变业务产物厚度，但不能跳过 Task。`completed` 只是待归档态；只有 `codestable/tasks/archived/` 正本有效、active 同名文件不存在且扫描无冲突，工作才闭环。
+如果无法可靠判断 Question 还是 Issue，必须在创建 Task 前使用 AskQuestion 让用户选择；不得因为使用了 `/cs`、出现代码路径或提到技术名词，就把 Question 自动升级成 Task。Task List 是执行进度的 source of truth，Agent 自带 Todo / Tasks 只是运行时镜像；需求、方案和验收依据先保存在相关业务文档中，不能做完 Task 后才首次补建 Issue / Spec。
+
+文档按需准备，不为小改生成整套 Vision / Epic，Project Spec 也不能把未实现目标当当前事实；维护文档本身复用目标正本，不递归建 Issue。明确禁止业务文档或纯只读 Review 时按授权处理，但已确认 Issue 的 Task 不可省略。`completed` 只是待归档态；`codestable/tasks/archived/` 正本有效、active 同名文件不存在且扫描无冲突，只证明 Task 闭环，关联业务文档的最终回写完成后整个工作流才结束。
 
 归档文件名使用 `YYYY-MM-DD-NNN-{task}.md`。`NNN` 是同一归档日期下所有 Task 共享的三位顺序号，每天从 `001` 重新开始，并按实际归档顺序递增。
 
@@ -113,7 +120,9 @@ CodeStable 的核心对象不是 Agent 编排，而是软件自身的状态、�
 
 Lite runtime 只允许 `tasks/active/` 与 `tasks/archived/`：create 和 archive 都用不覆盖已有证据的独占发布，scan 会把额外目录、非规范文件和 symlink 视为失败；archive 记录源快照 hash，因此成功响应丢失后可安全重放原命令。若归档后 active 路径被重建，archive 或 cleanup 只会在其内容与唯一有效 archive 正本或该正本记录的源快照完全一致时清除残留；若内容不同，则保留双方证据并 fail closed。
 
-计划确定前可以通过结构化问题澄清目标、边界与授权。计划写入 Task 后进入无人值守：Agent 不询问普通推进，只在缺口会改变目标、正确性或权限且无法查证时提问；按契约一致性、风险、可逆性、证据强度和总成本自动选择推荐方向，处理失败，执行自动回写与沉淀检查，并持续到全部计划、验证和 Task 归档完成。用户中途纠正优先于旧计划；宿主能力需按实际工具 schema 核对，不能从模型名称推导。
+计划确定前可以通过结构化问题澄清目标、边界与授权，结论先写入相关文档再创建 Task。计划写入 Task 后进入无人值守：Agent 不询问普通推进，只在缺口会改变目标、正确性或权限且无法查证时提问；按契约一致性、风险、可逆性、证据强度和总成本自动选择推荐方向，处理失败，并持续到全部计划、验证、Task 归档与归档后的业务回写完成。用户中途纠正优先于旧计划；宿主能力需按实际工具 schema 核对，不能从模型名称推导。
+
+归档前记录回写结论、目标章节与关闭改名映射；归档后回写中断时，从归档证据和业务正本继续，不复活或修改冻结 Task，也不另建一个“收尾 Task”。最终状态与实际路径在业务文档维护；回写未完成不能只凭 Task archived 宣布结束。
 
 ### 用四层世界模型定位变化
 
@@ -150,12 +159,12 @@ Design 不会把未读懂的部分写成确定结论；Do 遇到小偏差会回�
 
 | 情况 | 默认处理 |
 |---|---|
-| 小、明确、一次完成，或用户要求快 | 直接实现与验证；默认留下紧凑的 `ff` 快改记录 |
+| 小、明确、一次完成，或用户要求快 | 先写紧凑 `o-ff` 依据，再建 Task 实现与验证；Task 归档后回写并关为 `x-ff` |
 | 有范围取舍、多轮推进、交接或显著风险 | 常规 Issue |
 | 跨模块、多批推进、规格在边界内持续演化 | Epic Spec；清楚切片可在 Epic 内直接推进，也可按需开 Issue |
 | 现状链路复杂、证据冲突或理解值得复用 | Explore Issue |
 
-管理不是仪式：用户明确不要业务记录时可以不建 `ff`；用户明确要跟踪时也不因“看起来很小”而绕开 Issue。对已经确认的 Issue，Task 仍是不可豁免的运行账本。实现验证完成后，独立 Issue 的稳定事实同步到 Project Spec，Epic 内成果同步到 Epic Spec，并检查可复用的 Talk、Note、Tool；这不改变业务事项的 open/closed 状态。Issue / Epic 关闭与 Epic 毕业仍需相应授权，未授权则保留 open；Task 归档是每个 Issue workflow 的机械闭环，不等于关闭 Issue 或 Epic，也不等于移动到 `done/`。
+管理不是仪式：用户明确不要业务记录时可以不建 `ff`；用户明确要跟踪时也不因“看起来很小”而绕开 Issue。对已经确认的 Issue，Task 仍是不可豁免的运行账本。实现验证后准备稳定结论与回写位置；Task 归档后，独立 Issue 的事实同步到 Project Spec，Epic 内成果同步到 Epic Spec，并更新相关结果、推进状态及 Talk、Note、Tool 索引。常规 Issue / Epic 关闭与 Epic 毕业仍需相应授权，未授权则保留 open 并注明本轮完成/关闭就绪；`ff` 按快改规则关闭。Task 归档不等于关闭 Issue 或 Epic，也不等于移动到 `done/`。
 
 ### 把可复用的认识毕业到正确层级
 

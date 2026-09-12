@@ -30,14 +30,17 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 ### Issue 姿态进入 Task 主线
 
-先读 [Task 主线](references/task.md) 与 [计划后自治](references/autonomy.md)。简单 Question 直接回答，不创建 Task；无法识别是 Question 还是 Issue 时，必须在创建 Task 前用 AskQuestion 确认。对于已经确认的 Issue，尚不能形成目标与步骤时属于 intake，可以使用 AskQuestion 澄清；一旦计划足以开工，必须按以下顺序执行：
+先读 [Task 主线](references/task.md) 与 [计划后自治](references/autonomy.md)。简单 Question 直接回答，不创建 Task；无法识别是 Question 还是 Issue 时，必须在创建 Task 前用 AskQuestion 确认。确认需要推进后，严格区分业务依据、执行账本和最终回写，按以下顺序执行：
 
-1. 扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task；
-2. 以 Task 正本同步 Agent 原生 Tasks，在当前 run 开始工作；
-3. 每个可观察批次完成后，先用 SHA-256 陈旧快照保护更新 Task，再继续下一批；
-4. 自动完成分析、设计、实现或只读交付、验证、必要 Review 与修复循环；讨论转入行动、实现验证结束、关闭及 Task 完成前，执行 [自动回写与沉淀](references/retention.md)，命中才读对应细则；
-5. 全部完成后把 Task 标记 completed，立即原子归档并 cleanup；
-6. 只有 archived 正本 schema 有效、active 同名文件不存在且 scan 无冲突，才能给出完成式最终答复。
+1. 分析讨论并形成结论：有界读取相关现状与历史，明确目标、范围、方案和验证方式；缺关键输入时用 AskQuestion 澄清，不先建空壳 Task；
+2. 创建或更新相关 Issue / Spec 等前置文档：复用已有正本，常规 Issue 或快改 `ff` 先写目标、范围和验证依据；Project Spec 只写当前事实，未实现目标留在 Issue / Epic；
+3. 前置文档就绪后，扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task，关联已有依据并同步 Agent 原生 Tasks；
+4. 实施修改或交付；每个可观察批次完成后，先用 SHA-256 陈旧快照保护更新 Task，再继续下一批；
+5. 测试与必要 Review；失败回到修改、更新 Task 和复测，验证通过后准备 [自动回写与沉淀](references/retention.md) 的结论、目标位置与授权判断；
+6. 执行与验证全部完成后把 Task 标记 completed，立即原子归档并 cleanup / scan；
+7. Task 归档后更新所有相关 Issue / Spec 等文档的结果、最终状态和链接；回读确认一致后才能结束。archived 正本 schema 必须有效、active 同名文件不存在且 scan 无冲突，业务回写也不得遗漏。
+
+相关文档按本次需要准备，不强制生成整套 Vision / Epic。纯文档工作复用目标正本，纯只读或用户明确禁止业务文档时按授权处理并记录依据；这些边界不能变成默认“先 Task、做完再首次补 Issue / Spec”。Task 归档只是执行账本闭环，不是整个工作流的结束。
 
 Task 不能被 Issue 的无痕模式豁免。“不要 issue / 不写 ff / 只读 / 小改”只影响业务实体和交付形式，不影响已确认 Issue 的 Task 创建、更新、完成与归档；“只在对话回答”若确实是 Question，则不创建 Task。Task 自身操作更新当前 Task，不递归创建第二个 Task。
 
@@ -202,9 +205,9 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 |---|---|
 | Vision 目标内容 | 用户确认后才修改目标；未授权时记录差异并保持原目标 |
 | Vision 实现程度/链接 | Epic **关闭**时按事实 |
-| Project Spec | 独立实现验证后同步当前事实、关闭时复核毕业；独立 Explore 关闭毕业；Epic **关闭**合并；规格姿态维护 |
-| Epic Spec | 规格姿态；epic 下 issue 或直接切片验证后同步，关闭时复核 |
-| Issue / ff | 受管理推进；快改完成后写/关 `ff` |
+| Project Spec | Task 前核对当前事实与漂移；验证后准备增量，Task 归档后同步当前事实与最终状态；Epic **关闭**合并 |
+| Epic Spec | Task 前明确本轮活规格与切片；推进中维护事实，Task 归档后同步结果与推进状态 |
+| Issue / ff | Task 前创建或更新目标、范围与验证依据；实施中记录进度，Task 归档后回写结果与最终状态 |
 
 出现冲突时，按 `用户最新确认 > 证据与代码 > 疑似过期的 spec` 判断。Epic 与 Vision 不一致时，先说明这是收窄实现还是修改目标，不要静默绕过。
 
@@ -215,13 +218,13 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 | **完成** | 实现与验证达成目标 |
 | **关闭** | 用户授权收尾：`o`→`x`、毕业回写；git 中可按契约 commit 相关文件 |
 | **整理进 done** | 仅用户主动要求时挪已 `-x-` 项；关闭/快改/会话结束**不自动**做；`done/` 仍参与检索 |
-| **Task 归档** | 每个 workflow 完成后的机械闭环；不等于关闭 Issue / Epic，也不需要二次授权 |
+| **Task 归档** | 执行与验证后的机械闭环；之后仍须更新关联文档状态，不等于关闭 Issue / Epic，也不需要二次授权 |
 
 | 用户动作或场景 | 默认行为 |
 |---|---|
-| 快改 | 验证后默认写 `ff`（或直接 `x-ff`）；用户可省略 `ff`，但 Task 必须归档；不自动 commit/push |
-| 受管理实现 | 完成即可；**不**自动关闭 issue；不 commit/push |
-| 用户说做完/修好 | 完成验证；小改仍落 `ff`（除非不要痕迹）；常规 issue 不自动关 |
+| 快改 | Task 前写 `o-ff`，验证并归档 Task 后回写并关为 `x-ff`；用户可明确省略 `ff`；不自动 commit/push |
+| 受管理实现 | 先有业务依据再建 Task；归档后回写完成/关闭就绪状态，**不**自动关闭 issue；不 commit/push |
+| 用户说做完/修好 | 完成验证、Task 归档及关联文档回写；小改先有 `ff`（除非不要痕迹），常规 issue 不自动关 |
 | 用户说关闭/收尾 | [close](references/close.md)；不自动进 `done/` |
 | push / 部署 / 初始化或覆盖 `codestable/` / 关 epic / 破坏性操作 | **必须**明确授权 |
 
@@ -232,7 +235,7 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 - Epic 关闭 → 将稳定结论的**具体内容**合并进 Project Spec，并检查 Vision；只链接 Epic 不算毕业回写。
 - `ff` 默认不做大段毕业；有规格增量或真相失效时按物理归属同步 Project / Epic Spec；无增量要有依据。
 
-实现完成前先按 [自动回写与沉淀](references/retention.md) 同步已验证事实，并检查 Talk、Note、Tool。关闭不再是知识回写的唯一触发点；Epic 毕业仍须用户确认。详细关闭规则见 [close](references/close.md)。
+实现验证后按 [自动回写与沉淀](references/retention.md) 准备已验证事实并检查 Talk、Note、Tool；Task 归档后完成关联结果与状态回写。关闭不再是知识回写的唯一触发点；Epic 毕业仍须用户确认。详细关闭规则见 [close](references/close.md)。
 
 ### 质量语言
 
@@ -244,14 +247,14 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 3. 开工协议
 
-任何 Issue 姿态结束 intake、准备 substantive work 时，先创建或恢复 Task；Question 不进入本协议。Task runtime 可按需只创建 `codestable/tasks/`，不以完整 onboard 作为前置。随后若项目已有其余 `codestable/` 内容，再做本协议（各 reference 不重复展开）：
+任何 Issue 姿态先做本协议中的有界检索与分析，形成结论并准备相关业务文档后，才创建或恢复 Task、进入实施；不能把 Task gate 放在分析和前置文档之前。Question 不进入本协议。只创建本次获授权且必要的目录，不以完整 onboard 作为前置。项目已有 `codestable/` 内容时按以下方式检索（各 reference 不重复展开）：
 
-1. **Task gate**：直接扫描文件系统；恢复匹配 active Task，或用 runtime 创建新 Task；同步 Agent 原生 Tasks。
-2. **扫 `codestable/`**：路径浏览 + 关键词 grep。本会话同主题已扫且无新写入可复用。
-3. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
-4. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → Explore issue。
-5. **管理强度**：见上文表。管理强度只决定业务实体厚度，不影响 Task。
-6. 与代码冲突：先核对证据，再改真相——不静默用代码盖掉已记录取舍，也不盲信过期文档。
+1. **扫 `codestable/`**：路径浏览 + 关键词检索。本会话同主题已扫且无新写入可复用。
+2. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
+3. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → 明确 Explore 调查目标与停止条件。
+4. **管理强度与结论**：收束范围、方案和验证方式；与代码冲突时先核对证据，不静默覆盖已记录取舍或盲信过期文档。
+5. **前置业务文档**：创建或更新相关 Issue / `ff` / Spec 等正本，保存本轮结论；管理强度决定文档厚度，不颠倒先后顺序。
+6. **Task gate**：前置依据就绪后直接扫描文件系统；恢复匹配 active Task，或用 runtime 创建新 Task，关联依据并同步 Agent 原生 Tasks，之后才实施。
 
 有目标 Issue 时，确认正在处理的是其**当前版本**；在 Epic 下工作时，读取该 Epic 的 `spec.md`。
 
@@ -261,12 +264,12 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 
 ## 4. 授权边界
 
-- 已确认是 Issue，且方向已确认、用户要求执行 → 创建 Task 并进入无人值守，推进到**完成并归档 Task**；不在任何普通步骤、方案分叉或失败修复间反复确认。
+- 已确认是 Issue，且方向已确认、用户要求执行 → 先准备相关业务依据，再创建 Task 并进入无人值守，推进到**完成并归档 Task、回写所有关联文档最终状态**；不在普通步骤、方案分叉或失败修复间反复确认。
 - 确认前：讨论不落盘；设计不写代码。
 - 计划确定后：不询问普通推进；必要澄清或授权仍可使用 AskQuestion，并按 [计划后自治](references/autonomy.md) 自动选择推荐方向、执行回写检查并持续推进。
 - 完成 ≠ 关闭；关闭 ≠ `done/`；Task 归档 ≠ 关闭业务实体。实现/快改后只执行风险需要的 Review，**不**自动 push。
 - 初始化 `codestable/`、覆盖入口、关 epic、危险操作、推送、部署：须明确授权。
-- 未在计划确定前获授权的不可逆动作不纳入计划；选择非破坏性方向完成其余目标，不在执行中再次询问。
+- 未授权的不可逆动作保持排除；若是达成用户目标的必要条件，执行前请求必要授权，缺授权则保留 blocked 恢复点，不偷换完成条件。
 
 ---
 

@@ -1410,6 +1410,56 @@ class TaskRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(successful_scan.returncode, 0)
 
+    def test_archive_cli_and_replay_require_separate_business_writeback(self) -> None:
+        issue_path = self.root / "codestable/issues/001-o-verify-lifecycle.md"
+        issue_path.parent.mkdir(parents=True)
+        issue_content = "---\nkind: issue\nstatus: open\n---\n\n# Verify lifecycle\n"
+        issue_path.write_text(issue_content, encoding="utf-8")
+        active_path = task_runtime.create_task(
+            root=self.root,
+            task="verify-lifecycle",
+            goal="Verify lifecycle ordering",
+            workflow="feature",
+            owner="cs",
+            steps=["Inspect current behavior", "Implement and verify"],
+            related_docs=[issue_path.relative_to(self.root).as_posix()],
+            current_date="2026-07-29",
+        )
+        self.complete_task("verify-lifecycle")
+        archive_command = [
+            "python3",
+            str(RUNTIME_PATH),
+            "--root",
+            str(self.root),
+            "archive",
+            "--task",
+            "verify-lifecycle",
+            "--date",
+            "2026-07-29",
+            "--expected-sha256",
+            task_runtime.calculate_sha256(active_path),
+        ]
+
+        for attempt in range(2):
+            with self.subTest(attempt=attempt):
+                archive_result = subprocess.run(
+                    archive_command, capture_output=True, text=True, check=False
+                )
+                self.assertEqual(archive_result.returncode, 0, archive_result.stdout)
+                archive_payload = json.loads(archive_result.stdout)
+                self.assertEqual(
+                    archive_payload.get("next_action"),
+                    "write-back-related-business-documents",
+                )
+                archived_text = (self.root / archive_payload["archived_path"]).read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn("Task 已归档时只继续关联文档的最终回写", archived_text)
+                self.assertIn("不修改冻结 Task，不为回写另建 Task", archived_text)
+                self.assertEqual(issue_path.read_text(encoding="utf-8"), issue_content)
+                self.assertFalse(active_path.exists())
+                self.assertFalse(task_runtime.scan_tasks(self.root).findings)
+
     def test_archive_recovers_content_prepared_before_an_interrupted_move(self) -> None:
         active_path = self.create_task("resume-archive")
         self.complete_task("resume-archive")

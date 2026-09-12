@@ -666,8 +666,11 @@ def render_task_document(
         "## 5. 执行步骤\n\n"
         f"{step_sections}\n\n"
         "## 6. 中断恢复提示\n\n"
-        "从第一个未完成步骤继续，并先以 Task 正本恢复 Agent 原生 Tasks。"
+        "先核对关联业务依据，再从第一个未完成步骤继续，并以 Task 正本恢复 Agent 原生 Tasks。"
         "计划确定后按 references/autonomy.md 自动择优，不再请求路线确认。\n\n"
+        "Task 已归档时只继续关联文档的最终回写，按归档记录中的位置与路径映射恢复；"
+        "不修改冻结 Task，不为回写另建 Task。归档后的 related_docs 保留历史路径，"
+        "最终引用在业务正本维护。\n\n"
         "## 7. 完成与归档记录\n\n"
         f"{current_date}：Task 已创建。\n"
     )
@@ -1836,7 +1839,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
     create_parser.add_argument("--workflow", required=True)
     create_parser.add_argument("--owner", default="cs")
     create_parser.add_argument("--step", action="append", default=[])
-    create_parser.add_argument("--related-doc", action="append", default=[])
+    create_parser.add_argument(
+        "--related-doc",
+        action="append",
+        default=[],
+        help="Existing business context or evidence prepared before this Task.",
+    )
     create_parser.add_argument("--date")
 
     write_parser = command_parsers.add_parser("write-active", help="CAS-update an active Task.")
@@ -1976,13 +1984,17 @@ def main() -> int:
                 }
             )
         elif arguments.command == "archive":
+            archive_result = archive_task(
+                root=root,
+                task=arguments.task,
+                archive_date=arguments.date,
+                expected_sha256=arguments.expected_sha256,
+            )
             print_json(
-                archive_task(
-                    root=root,
-                    task=arguments.task,
-                    archive_date=arguments.date,
-                    expected_sha256=arguments.expected_sha256,
-                )
+                {
+                    **asdict(archive_result),
+                    "next_action": "write-back-related-business-documents",
+                }
             )
         elif arguments.command == "cleanup":
             findings = cleanup_task(root, arguments.task)

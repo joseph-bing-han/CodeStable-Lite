@@ -11,6 +11,7 @@ type: feature | bug | chore | refactor
 写法：按读者此刻要解决的问题组织，不要套固定章节名凑满。
 未发生的信息整段省略；简单改动保持短。
 路径：所属 issues 树下的 {NNN}-o|x-{name}.md。普通 Issue 不使用日期或 Task 目录，不另建 fix-note、report 或 analysis 文件。
+时序：分析讨论形成结论后，先写本 Issue 的目标、范围、方案和验证依据，再创建关联 Task；实现与测试之后归档 Task，再回写本 Issue 及相关 Spec 的结果、最终状态和链接。未获关闭授权保持 open，不预填执行成功或关闭结论。
 -->
 
 # [标题]
@@ -57,6 +58,7 @@ type: feature | bug | chore | refactor
 
 ## 关闭时
 
+- Task 归档后回写：实际结果、Task archive 与最终推进状态；关闭改名时保留原路径和归档前约定的映射，更新仍可变的引用，不改冻结 Task。
 - 实际回写 / 毕业候选：独立 Issue → Project Spec；Epic 内 Issue → Epic Spec；Epic 关闭后 → Project Spec。写具体结论、目标章节与验证依据；若无规格增量，说明原因。
 - 沉淀检查：Talk / Note / Tool 的已更新位置，或不满足条件的原因：
 - 关闭判断与验证摘要：

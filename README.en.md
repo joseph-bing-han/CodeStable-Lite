@@ -97,15 +97,22 @@ Users therefore do not need to choose a sub-skill, and the system does not load 
 First distinguish a Question from an Issue. Explanations, facts, definitions, simple current-state answers, usage guidance, and option comparisons that can end with the answer are answered directly without creating a Task. Requests to investigate and deliver, design and write back, modify code or documentation, fix behavior, verify results, synchronize `codestable/`, or advance or close an existing entity enter the Task spine as Issues:
 
 ```text
-create or resume Task
-  -> execute one observable batch
+user reports a problem or requirement
+  -> analyze and discuss until a conclusion is clear
+  -> create or update relevant Issue / Spec and other prerequisite documents
+  -> create or resume Task
+  -> implement one observable batch
   -> update Task
-  -> continue implementation, verification, and required fixes
+  -> test / required review (failure returns to implementation, Task updates, and retesting)
   -> mark completed
   -> archive atomically and verify no matching active Task remains
+  -> update all related business documents with results, final status, and links
+  -> read back and finish
 ```
 
-If the distinction is unclear, use AskQuestion before creating a Task and let the user choose; never promote a Question merely because it uses `/cs`, includes a code path, or names a technology. The Task List is the source of truth; an agent's native Todo or Tasks view is only a runtime mirror. For a confirmed Issue, “No Issue,” “no ff,” “read-only,” and “small change” may reduce business artifacts, but they never bypass Task creation, updates, completion, and archive. `completed` is only a pre-archive state. Closure requires a valid document under `codestable/tasks/archived/`, no matching active document, and a conflict-free scan.
+If the distinction is unclear, use AskQuestion before creating a Task and let the user choose; never promote a Question merely because it uses `/cs`, includes a code path, or names a technology. The Task List is the source of truth for execution progress; an agent's native Todo or Tasks view is only a runtime mirror. Requirements, approach, and acceptance criteria belong in the relevant business documents first, not in Issues or Specs first created after Task completion.
+
+Keep documentation proportional: a small fix does not require a full Vision/Epic set, Project Spec must not present unimplemented goals as current facts, and documentation work reuses its target document without recursive Issue creation. Explicitly forbidden business documentation and read-only review preserve their authorization boundaries, but a confirmed Issue still requires a Task. `completed` is only a pre-archive state. A valid document under `codestable/tasks/archived/`, no matching active document, and a conflict-free scan prove Task closure; the whole workflow ends only after final business write-back is complete.
 
 Archived filenames use `YYYY-MM-DD-NNN-{task}.md`. `NNN` is a three-digit sequence shared by every Task archived on that date; it resets to `001` each day and increases in actual archive order.
 
@@ -113,7 +120,9 @@ For existing `YYYY-MM-DD-{task}.md` archives, run `python3 <cs-skill>/scripts/co
 
 The Lite runtime permits only `tasks/active/` and `tasks/archived/`. Create and archive use exclusive publication that never overwrites existing evidence; scan treats extra directories, noncanonical files, and symlinks as failures. Archive records its source snapshot hash, so the original command can be replayed safely if a success response is lost. If an active path is recreated after archive, archive or cleanup removes it only when its content matches either the unique valid archive or that archive's recorded source snapshot; divergent duplicates stay fail-closed.
 
-Before plan commitment, structured questions may clarify the goal, boundary, acceptance, and authorization. Once the plan is written to the Task, execution becomes unattended: the agent does not ask about ordinary progress, and asks only when an unverified gap would change the goal, correctness, or authority. It chooses the recommended direction by contract consistency, risk, reversibility, evidence strength, and total cost, resolves failures, performs the retention check, and continues until the plan, verification gates, and Task archive are complete. User corrections supersede affected prior direction; host capabilities must be checked from actual tool schemas, not inferred from a model name.
+Before plan commitment, structured questions may clarify the goal, boundary, acceptance, and authorization; conclusions go into relevant documents before Task creation. Once the plan is written to the Task, execution becomes unattended: the agent does not ask about ordinary progress, and asks only when an unverified gap would change the goal, correctness, or authority. It chooses the recommended direction by contract consistency, risk, reversibility, evidence strength, and total cost, resolves failures, and continues until the plan, verification gates, Task archive, and post-archive business write-back are complete. User corrections supersede affected prior direction; host capabilities must be checked from actual tool schemas, not inferred from a model name.
+
+Before archive, record the conclusions, target sections, and expected closure path mappings. If post-archive write-back is interrupted, resume from archive evidence and business documents; never reopen or edit a frozen Task or create another Task solely for that write-back. Maintain final status and current links in business documents. An archived Task alone does not justify reporting completion while write-back is unfinished.
 
 ### Locate change in a four-layer world model
 
@@ -150,12 +159,12 @@ Design does not write unread areas as settled conclusions. Do writes back small 
 
 | Situation | Default response |
 |---|---|
-| Small, clear, one-session, or explicitly urgent | Implement and verify directly; leave a compact `ff` quick-change record by default |
+| Small, clear, one-session, or explicitly urgent | Write a compact open `ff` first, then create its Task and implement/test; after Task archive, write back and close the `ff` |
 | Scope trade-offs, multiple rounds, handoff, or material risk | Ordinary Issue |
 | Cross-module or multi-batch change with an evolving bounded specification | Epic Spec; clear slices may advance directly inside it or use Issues when useful |
 | Complex current path, conflicting evidence, or understanding worth reusing | Explore Issue |
 
-Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. For a confirmed Issue, the Task runtime ledger remains mandatory. After verified implementation, stable facts from an independent Issue are synchronized to the Project Spec, Epic work is synchronized to the Epic Spec, and reusable Talk, Note, and Tool outputs are checked; this does not change business status. Issue/Epic closure and Epic graduation still require the relevant authorization; otherwise they remain open. Task archive is the mechanical closure of every Issue workflow, not the closing of an Issue or Epic or a move to `done/`.
+Management is not ceremony. A user can explicitly omit an `ff` business record; a user can also request an Issue for work that looks small. For a confirmed Issue, the Task runtime ledger remains mandatory. Prepare stable conclusions and destinations after verified implementation. After Task archive, synchronize independent Issue facts to Project Spec and Epic work to Epic Spec, and update related results, progress, and Talk/Note/Tool indexes. Ordinary Issue/Epic closure and Epic graduation still require the relevant authorization; otherwise keep them open and record implementation completion or closure readiness. Close `ff` records under the quick-change contract. Task archive is not the closing of an Issue or Epic or a move to `done/`.
 
 ### Graduate reusable understanding to the right layer
 

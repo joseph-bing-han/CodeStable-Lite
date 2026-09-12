@@ -279,6 +279,8 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
             "创建或恢复 Task",
             "每个可观察批次",
             "原子归档",
+            "创建或更新相关 Issue / Spec 等前置文档",
+            "Task 归档后更新所有相关 Issue / Spec",
             "不询问普通推进，只询问必要澄清与授权",
         ],
         "references/task.md": [
@@ -294,6 +296,9 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
             "archive-pending-move",
             "duplicate-task-state",
             "`completed` 不是最终状态",
+            "前置文档先于 Task gate",
+            "Task 已归档，业务回写未完成",
+            "write-back-related-business-documents",
         ],
         "references/autonomy.md": [
             "简单 Question 直接回答，不创建 Task",
@@ -342,6 +347,8 @@ def check_task_contract(root: Path, findings: list[Finding]) -> None:
     if retention_path.is_file():
         retention_text = retention_path.read_text(encoding="utf-8")
         for marker in [
+            "开始执行前：先有业务依据",
+            "Task 归档后：更新所有关联文档",
             "独立 Issue / 无业务 Issue",
             "Epic 内 Issue / 直接切片",
             "Epic 经用户确认关闭",

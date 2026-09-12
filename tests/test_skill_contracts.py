@@ -28,6 +28,16 @@ def read_text(relative_path: str) -> str:
 
 
 class SkillContractTests(unittest.TestCase):
+    def assert_markers_follow_order(self, text: str, markers: tuple[str, ...]) -> None:
+        for marker in markers:
+            self.assertIn(marker, text)
+        marker_positions = [text.index(marker) for marker in markers]
+        self.assertEqual(
+            marker_positions,
+            sorted(marker_positions),
+            "Development lifecycle phases are out of order",
+        )
+
     def test_repository_keeps_exactly_one_skill_entry(self) -> None:
         skill_directories = sorted(
             path.name for path in (ROOT / "skills").iterdir() if path.is_dir()
@@ -261,6 +271,131 @@ class SkillContractTests(unittest.TestCase):
         template_text = read_text("skills/cs/templates/entities/task.md")
         self.assertIn("归档不是 Task 计划步骤", task_text)
         self.assertNotRegex(template_text, r"(?m)^- \[[ x]\].*(归档|archive)")
+
+    def test_documented_spines_keep_business_context_before_task_and_writeback_after_archive(self) -> None:
+        workflow_contracts = (
+            (
+                "skills/cs/references/task.md",
+                "## 6. 全流程 spine",
+                (
+                    "有界分析讨论 / 必要澄清，形成结论",
+                    "创建或更新相关 Issue / Spec 等前置文档",
+                    "创建或恢复 active Task",
+                    "实施修改或交付一个可观察批次",
+                    "-> 更新 Task",
+                    "测试 / 必要 Review（失败 -> 修改 -> 更新 Task -> 复测）",
+                    "Task 标记 completed",
+                    "立即原子归档",
+                    "更新所有相关 Issue / Spec 等文档的结果、最终状态和链接",
+                    "最终答复",
+                ),
+            ),
+            (
+                "README.md",
+                "### Issue 共享同一条 Task 留痕主线，Question 不创建 Task",
+                (
+                    "分析讨论并形成结论",
+                    "创建或更新相关 Issue / Spec 等前置文档",
+                    "创建或恢复 Task",
+                    "实施一个可观察批次",
+                    "-> 更新 Task",
+                    "测试 / 必要 Review（失败则返回修改、更新 Task 与复测）",
+                    "标记 completed",
+                    "原子归档并确认 active 无同名残留",
+                    "更新所有相关 Issue / Spec 等文档的结果、最终状态和链接",
+                    "回读确认后结束",
+                ),
+            ),
+            (
+                "README.en.md",
+                "### Give Issues the same traceable Task spine; Questions create no Task",
+                (
+                    "analyze and discuss until a conclusion is clear",
+                    "create or update relevant Issue / Spec and other prerequisite documents",
+                    "create or resume Task",
+                    "implement one observable batch",
+                    "-> update Task",
+                    "test / required review (failure returns to implementation, Task updates, and retesting)",
+                    "mark completed",
+                    "archive atomically and verify no matching active Task remains",
+                    "update all related business documents with results, final status, and links",
+                    "read back and finish",
+                ),
+            ),
+        )
+        for relative_path, section_heading, ordered_phases in workflow_contracts:
+            with self.subTest(relative_path=relative_path):
+                section_text = read_text(relative_path).split(section_heading, 1)[1]
+                workflow_text = section_text.split("```text\n", 1)[1].split("```", 1)[0]
+                self.assert_markers_follow_order(workflow_text, ordered_phases)
+
+    def test_skill_entry_and_host_prompt_preserve_the_same_lifecycle_order(self) -> None:
+        skill_text = read_text("skills/cs/SKILL.md")
+        entry_text = skill_text.split("### Issue 姿态进入 Task 主线", 1)[1].split("\n---", 1)[0]
+        self.assert_markers_follow_order(
+            entry_text,
+            (
+                "1. 分析讨论并形成结论",
+                "2. 创建或更新相关 Issue / Spec 等前置文档",
+                "3. 前置文档就绪后",
+                "4. 实施修改或交付",
+                "5. 测试与必要 Review",
+                "6. 执行与验证全部完成后",
+                "7. Task 归档后更新所有相关 Issue / Spec",
+            ),
+        )
+        startup_text = skill_text.split("## 3. 开工协议", 1)[1].split("## 4.", 1)[0]
+        self.assert_markers_follow_order(
+            startup_text,
+            ("**扫 `codestable/`**", "**按权重深读**", "**前置业务文档**", "**Task gate**"),
+        )
+        self.assert_markers_follow_order(
+            read_text("skills/cs/agents/openai.yaml"),
+            (
+                "Analyze and discuss the request",
+                "Create or update the relevant Issue, ff, Spec",
+                "Then create or resume a Task",
+                "Implement and update the Task",
+                "Test and return to implementation",
+                "Complete and atomically archive the Task",
+                "After archive and cleanup/scan, write back",
+                "then read them back before the final answer",
+            ),
+        )
+
+    def test_postures_do_not_restore_task_first_or_posthoc_issue_creation(self) -> None:
+        forbidden_instructions = (
+            "先创建或恢复 Task，再开始读取仓库",
+            "代码与验证完成后再写 `ff`",
+            "同会话已完成：直接在所属树写",
+            "先创建 active Task，再执行 `SKILL.md` 开工协议",
+            "先提交 Task 计划再查",
+            "创建或恢复 active Task → 有复用价值时落盘 Talk",
+            "确认后再写入 Task 并落盘",
+            "Before substantive work, create or resume a Task.",
+        )
+        contract_paths = [SKILL_ROOT / "SKILL.md", SKILL_ROOT / "agents/openai.yaml"]
+        contract_paths.extend((SKILL_ROOT / "references").glob("*.md"))
+        for contract_path in contract_paths:
+            contract_text = contract_path.read_text(encoding="utf-8")
+            for forbidden_instruction in forbidden_instructions:
+                with self.subTest(path=contract_path.name, instruction=forbidden_instruction):
+                    self.assertNotIn(forbidden_instruction, contract_text)
+
+    def test_post_archive_recovery_uses_business_documents_without_reopening_task(self) -> None:
+        task_text = read_text("skills/cs/references/task.md")
+        template_text = read_text("skills/cs/templates/entities/task.md")
+        close_text = read_text("skills/cs/references/close.md")
+        self.assertIn("不创建“收尾回写 Task”", task_text)
+        self.assertIn("不为修历史链接改写 archive", task_text)
+        self.assertIn("Task 已归档，业务回写未完成", task_text)
+        self.assertIn("Task 已归档时只继续关联文档的最终回写", template_text)
+        self.assertIn("不修改冻结 Task，不为回写另建 Task", template_text)
+        self.assertIn("不把未执行提交标成 done", task_text)
+        self.assertIn(
+            "准备与验证 -> Task 归档 -> 业务回写 -> 已授权提交 -> 最终答复",
+            close_text,
+        )
 
     def test_runtime_uses_only_the_single_writer_active_and_archived_model(self) -> None:
         runtime_text = read_text("skills/cs/scripts/codestable_task_runtime.py")
