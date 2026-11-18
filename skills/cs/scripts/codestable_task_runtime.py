@@ -38,7 +38,11 @@ ACTIVE_STATUS_TRANSITIONS: dict[str, frozenset[str]] = {
     "completed": frozenset({"completed"}),
     "cancelled": frozenset({"cancelled"}),
 }
-PROTECTED_UPDATE_FIELDS = frozenset({"doc_type", "task", "status", "created", "archived"})
+CONTINUATION_FIELD = "archive_base_sha256"
+PRIMARY_ISSUE_FIELD = "primary_issue"
+PROTECTED_UPDATE_FIELDS = frozenset(
+    {"doc_type", "task", "status", "created", "archived", CONTINUATION_FIELD, PRIMARY_ISSUE_FIELD}
+)
 TASK_REQUIRED_FIELDS = frozenset(
     {
         "doc_type",
@@ -449,13 +453,20 @@ def validate_task_document(
         raise TaskRuntimeError(
             f"Task frontmatter is missing required fields: {sorted(missing_fields)!r}"
         )
-    unknown_fields = set(frontmatter).difference(TASK_REQUIRED_FIELDS)
+    allowed_fields = TASK_REQUIRED_FIELDS | {PRIMARY_ISSUE_FIELD}
+    if not archived:
+        allowed_fields |= {CONTINUATION_FIELD}
+    unknown_fields = set(frontmatter).difference(allowed_fields)
     if unknown_fields:
         raise TaskRuntimeError(
             f"Task frontmatter contains unknown fields: {sorted(unknown_fields)!r}"
         )
     if frontmatter["doc_type"] != "task-list":
         raise TaskRuntimeError("Task doc_type must be task-list")
+    if CONTINUATION_FIELD in frontmatter:
+        validate_expected_sha256(str(frontmatter[CONTINUATION_FIELD]))
+    if PRIMARY_ISSUE_FIELD in frontmatter and issue_identity(str(frontmatter[PRIMARY_ISSUE_FIELD])) is None:
+        raise TaskRuntimeError("Task primary_issue must be a repository-relative CodeStable Issue path")
     if frontmatter["task"] != task:
         raise TaskRuntimeError("Task frontmatter slug does not match the target filename")
     for required_text_field in ("goal", "workflow", "owner_skill", "created", "updated"):
@@ -574,12 +585,24 @@ def validate_completion_gate(content: str) -> None:
         raise TaskRuntimeError("Task has unfinished work in its execution steps")
 
 
+def archived_task_can_continue(content: str) -> bool:
+    records = content.rsplit(TASK_SECTION_HEADINGS[-1], 1)[-1]
+    terminal_records = re.findall(
+        r"(?m)^\d{4}-\d{2}-\d{2}：Task (已标记 completed，等待归档。|"
+        r"状态从 active 变更为 cancelled。原因：)",
+        records,
+    )
+    if terminal_records and "cancelled" in terminal_records[-1]:
+        return False
+    return all(state == "x" for state, _ in parse_task_plan(content).checklist_items)
+
+
 def validate_update_preserves_protected_fields(
     current_frontmatter: dict[str, object],
     candidate_frontmatter: dict[str, object],
 ) -> None:
     for field_name in PROTECTED_UPDATE_FIELDS:
-        if current_frontmatter[field_name] != candidate_frontmatter[field_name]:
+        if current_frontmatter.get(field_name) != candidate_frontmatter.get(field_name):
             raise TaskRuntimeError(f"Task update attempted to change protected Task field: {field_name}")
 
 
@@ -668,9 +691,10 @@ def render_task_document(
         "## 6. 中断恢复提示\n\n"
         "先核对关联业务依据，再从第一个未完成步骤继续，并以 Task 正本恢复 Agent 原生 Tasks。"
         "计划确定后按 references/autonomy.md 自动择优，不再请求路线确认。\n\n"
-        "Task 已归档时只继续关联文档的最终回写，按归档记录中的位置与路径映射恢复；"
-        "不修改冻结 Task，不为回写另建 Task。归档后的 related_docs 保留历史路径，"
-        "最终引用在业务正本维护。\n\n"
+        "Task 已归档时只继续关联文档的最终回写，适用于本次只剩回写的情况。"
+        "按归档记录中的位置与路径映射恢复，不修改冻结 Task，不为回写另建 Task。"
+        "同目标有新增工作时使用 continue 移回 active 并追加，完成后重新归档。"
+        "业务正本维护最终引用。\n\n"
         "## 7. 完成与归档记录\n\n"
         f"{current_date}：Task 已创建。\n"
     )
@@ -734,12 +758,8 @@ def allocate_daily_archive_path(task_paths: TaskPaths, archive_date: str) -> Pat
         if entry_archive_date == archive_date:
             daily_sequences.append(daily_sequence)
 
-    sorted_daily_sequences = sorted(daily_sequences)
-    expected_daily_sequences = list(range(1, len(sorted_daily_sequences) + 1))
-    if sorted_daily_sequences != expected_daily_sequences:
-        raise TaskRuntimeError(
-            f"Archive date {archive_date} must contain unique contiguous sequences from 001"
-        )
+    if len(daily_sequences) != len(set(daily_sequences)):
+        raise TaskRuntimeError(f"Archive date {archive_date} must contain unique daily sequences")
     next_daily_sequence = max(daily_sequences, default=0) + 1
     if next_daily_sequence > MAX_DAILY_ARCHIVE_SEQUENCE:
         raise TaskRuntimeError(
@@ -844,15 +864,16 @@ def validate_active_mutation_preflight(
     task_paths: TaskPaths,
     expected_sha256: str,
 ) -> None:
-    if archived_files_for_task(task_paths):
-        raise TaskRuntimeError(
-            "Task exists in both active and archived locations; preserve both and resolve the conflict"
-        )
     if not task_paths.active_path.is_file():
         raise TaskRuntimeError(f"Active task does not exist: {task_paths.active_path}")
     if calculate_sha256(task_paths.active_path) != expected_sha256:
         raise TaskRuntimeError(
             "Active task content changed after it was read; reload and merge before retrying"
+        )
+    if archived_files_for_task(task_paths):
+        raise TaskRuntimeError(
+            "Task exists in both active and archived locations; "
+            "retry the interrupted operation or resolve the conflict"
         )
 
 
@@ -865,6 +886,7 @@ def create_task(
     steps: Sequence[str],
     related_docs: Sequence[str],
     current_date: str | None = None,
+    primary_issue: str | None = None,
 ) -> Path:
     task_paths = build_task_paths(root, task)
     ensure_task_directories(task_paths)
@@ -879,6 +901,8 @@ def create_task(
         related_docs=related_docs,
         current_date=creation_date,
     )
+    if primary_issue is not None:
+        content = f"---\n{PRIMARY_ISSUE_FIELD}: {primary_issue}\n{content[4:]}"
     validate_task_document(content, task)
     if task_paths.active_path.exists():
         raise TaskRuntimeError(f"Active task already exists: {task_paths.active_path}")
@@ -886,6 +910,104 @@ def create_task(
         raise TaskRuntimeError(f"Archived task already exists for slug: {task}")
     atomic_create_text(task_paths.active_path, content)
     return task_paths.active_path
+
+
+def continue_task(
+    root: Path,
+    task: str,
+    expected_sha256: str,
+    steps: Sequence[str],
+    progress_record: str,
+    related_docs: Sequence[str],
+    current_date: str | None = None,
+) -> Path:
+    validate_expected_sha256(expected_sha256)
+    continuation_date = current_date or date.today().isoformat()
+    validate_iso_date(continuation_date)
+    new_steps = [step.strip() for step in steps]
+    if not new_steps or any(not step or len(step.splitlines()) != 1 for step in new_steps):
+        raise TaskRuntimeError("Task continuation requires at least one new single-line step")
+    if not progress_record.strip():
+        raise TaskRuntimeError("Task continuation requires a non-empty progress record")
+    paths = build_task_paths(root, task)
+    validate_archive_workspace_filenames(paths)
+    archives = archived_files_for_task(paths)
+    if len(archives) != 1:
+        if not archives and paths.active_path.exists():
+            raise TaskRuntimeError("Task is already active; inspect the current plan before updating it")
+        raise TaskRuntimeError("Task continuation requires exactly one archived document")
+    archived_path = archives[0]
+    archived_bytes, archived_identity = read_file_snapshot(archived_path)
+    if hashlib.sha256(archived_bytes).hexdigest() != expected_sha256:
+        raise TaskRuntimeError("Archived Task changed after it was read; reload before continuing")
+    content = archived_bytes.decode("utf-8").replace("\r\n", "\n")
+    frontmatter = validate_task_document(content, task, archived=True)
+    if frontmatter["archived"] != parse_archived_task_filename(archived_path)[0]:
+        raise TaskRuntimeError("Archived Task date does not match its filename")
+    if not archived_task_can_continue(content):
+        raise TaskRuntimeError("Only a completed archived Task can be continued")
+    if current_date is None and paths.active_path.exists():
+        existing = parse_frontmatter(paths.active_path.read_text(encoding="utf-8"))
+        if existing.get(CONTINUATION_FIELD) == expected_sha256:
+            continuation_date = str(existing["updated"])
+            validate_iso_date(continuation_date)
+    prior_steps = len(parse_task_plan(content).checklist_items)
+
+    candidate = replace_frontmatter_field(content, "status", "active")
+    candidate = replace_frontmatter_field(candidate, "archived", "null")
+    candidate = replace_frontmatter_field(candidate, "updated", continuation_date)
+    candidate = replace_current_status(candidate, "active")
+    candidate = f"---\n{CONTINUATION_FIELD}: {expected_sha256}\n{candidate[4:]}"
+    issue_paths = task_issue_paths(frontmatter, paths.root)
+    if PRIMARY_ISSUE_FIELD not in frontmatter and len(issue_paths) == 1:
+        issue_path = next(iter(issue_paths.values()))
+        candidate = f"---\n{PRIMARY_ISSUE_FIELD}: {issue_path}\n{candidate[4:]}"
+    existing_docs = frontmatter["related_docs"]
+    added_docs = list(dict.fromkeys(doc for doc in related_docs if doc not in existing_docs))
+    if added_docs:
+        if any(not doc.strip() or len(doc.splitlines()) != 1 for doc in added_docs):
+            raise TaskRuntimeError("Task related documents must be non-empty single-line paths")
+        docs_frontmatter = "\n".join(f"  - {doc}" for doc in [*existing_docs, *added_docs])
+        candidate = re.sub(
+            r"(?m)^related_docs:[^\n]*(?:\n  - [^\n]*)*",
+            lambda _: f"related_docs:\n{docs_frontmatter}",
+            candidate,
+            count=1,
+        )
+        docs_body = "\n".join(f"- `{doc}`" for doc in added_docs)
+        candidate = insert_before_task_heading(candidate, TASK_SECTION_HEADINGS[4], docs_body)
+
+    checklist = "\n".join(f"- [ ] {step}" for step in new_steps)
+    execution = "\n\n".join(
+        f"### {number}. {step}\n\n- 状态：pending"
+        for number, step in enumerate(new_steps, start=prior_steps + 1)
+    )
+    for heading, addition in (
+        (TASK_SECTION_HEADINGS[3], checklist),
+        (TASK_SECTION_HEADINGS[5], execution),
+    ):
+        candidate = insert_before_task_heading(candidate, heading, addition)
+    candidate = append_archive_record(candidate, f"{continuation_date}：继续 Task。{progress_record}")
+    validate_task_document(candidate, task)
+    if not paths.active_path.exists():
+        atomic_create_text(paths.active_path, candidate)
+    ensure_path_has_no_symlink(paths.root, paths.active_path)
+    if not paths.active_path.is_file() or paths.active_path.read_bytes() != candidate.encode("utf-8"):
+        raise TaskRuntimeError("Active Task differs from the continuation; preserve archived evidence")
+    if archived_files_for_task(paths) != [archived_path] or not unlink_file_if_snapshot_is_current(
+        archived_path, archived_identity, expected_sha256,
+    ):
+        raise TaskRuntimeError("Archived Task changed before the move completed; evidence was preserved")
+    return paths.active_path
+
+
+def insert_before_task_heading(content: str, heading: str, addition: str) -> str:
+    return re.sub(
+        rf"(?m)^{re.escape(heading)}[ \t]*$",
+        lambda _: f"{addition}\n\n{heading}",
+        content,
+        count=1,
+    )
 
 
 def write_active_task(
@@ -1040,6 +1162,14 @@ def render_archived_task_content(
     archive_date: str,
     source_sha256: str | None = None,
 ) -> str:
+    frontmatter = parse_frontmatter(source_content)
+    if CONTINUATION_FIELD in frontmatter:
+        source_content = re.sub(rf"(?m)^{CONTINUATION_FIELD}:[^\n]*\n", "", source_content, count=1)
+    if PRIMARY_ISSUE_FIELD not in frontmatter:
+        issue_paths = task_issue_paths(frontmatter)
+        if len(issue_paths) == 1:
+            issue_path = next(iter(issue_paths.values()))
+            source_content = f"---\n{PRIMARY_ISSUE_FIELD}: {issue_path}\n{source_content[4:]}"
     archived_content = replace_frontmatter_field(source_content, "status", "archived")
     archived_content = replace_frontmatter_field(archived_content, "updated", archive_date)
     archived_content = replace_frontmatter_field(archived_content, "archived", archive_date)
@@ -1089,7 +1219,7 @@ def read_archive_provenance(
 ) -> ArchiveProvenance:
     ensure_path_has_no_symlink(task_paths.root, archived_path)
     archived_bytes, archive_identity = read_file_snapshot(archived_path)
-    archived_content = archived_bytes.decode("utf-8")
+    archived_content = archived_bytes.decode("utf-8").replace("\r\n", "\n")
     archived_frontmatter = validate_task_document(
         archived_content,
         task_paths.active_path.stem,
@@ -1103,8 +1233,10 @@ def read_archive_provenance(
     acceptable_active_sha256s = {archive_sha256}
     archived_source_sha256 = extract_archived_source_sha256(
         archived_content,
-        archive_date,
+        str(archived_frontmatter["updated"]),
     )
+    if archived_source_sha256 is None:
+        archived_source_sha256 = extract_archived_source_sha256(archived_content, archive_date)
     if archived_source_sha256 is not None:
         acceptable_active_sha256s.add(archived_source_sha256)
     return ArchiveProvenance(
@@ -1384,14 +1516,8 @@ def archive_task(
         if existing_archives == [archived_path]:
             build_task_summary(archived_path, task_paths.root, task, archived=True)
             archived_content = archived_path.read_text(encoding="utf-8")
-            acceptable_retry_hashes = {calculate_sha256(archived_path)}
-            archived_source_sha256 = extract_archived_source_sha256(
-                archived_content,
-                archive_date,
-            )
-            if archived_source_sha256 is not None:
-                acceptable_retry_hashes.add(archived_source_sha256)
-            if expected_sha256 not in acceptable_retry_hashes:
+            source_sha256 = extract_archived_source_sha256(archived_content, archive_date)
+            if expected_sha256 not in {calculate_sha256(archived_path), source_sha256}:
                 raise TaskRuntimeError(
                     "Archived task content does not match the expected retry snapshot"
                 )
@@ -1400,6 +1526,13 @@ def archive_task(
                 archived_path=archived_path.relative_to(task_paths.root).as_posix(),
             )
         raise TaskRuntimeError("Task has no active source that can be archived")
+    active_bytes, _ = read_file_snapshot(task_paths.active_path)
+    if hashlib.sha256(active_bytes).hexdigest() != expected_sha256:
+        raise TaskRuntimeError(
+            "Active task content changed after it was read; reload before archiving"
+        )
+    source_content = active_bytes.decode("utf-8").replace("\r\n", "\n")
+    source_frontmatter = parse_frontmatter(source_content)
     if existing_archives:
         if existing_archives == [archived_path] and archived_path.is_file():
             if calculate_sha256(task_paths.active_path) != expected_sha256:
@@ -1421,13 +1554,6 @@ def archive_task(
                     archived_path=archived_path.relative_to(task_paths.root).as_posix(),
                 )
         raise TaskRuntimeError("Task exists in both active and archived locations")
-    if calculate_sha256(task_paths.active_path) != expected_sha256:
-        raise TaskRuntimeError(
-            "Active task content changed after it was read; reload before archiving"
-        )
-
-    source_content = task_paths.active_path.read_text(encoding="utf-8")
-    source_frontmatter = parse_frontmatter(source_content)
     source_status = str(source_frontmatter.get("status"))
     if source_status == "archived":
         validate_task_document(source_content, task, archived=True)
@@ -1633,7 +1759,6 @@ def scan_tasks(root: Path) -> ScanResult:
     archived_slugs: set[str] = set()
     archive_counts: dict[str, int] = {}
     daily_archive_paths: dict[tuple[str, int], list[Path]] = {}
-    daily_archive_sequences: dict[str, list[int]] = {}
 
     required_directories = (
         (task_root, "task-root"),
@@ -1663,7 +1788,6 @@ def scan_tasks(root: Path) -> ScanResult:
                     path=relative_path,
                 )
             )
-            workspace_is_valid = False
         elif not required_directory.is_dir():
             findings.append(
                 RuntimeFinding(
@@ -1677,7 +1801,7 @@ def scan_tasks(root: Path) -> ScanResult:
         return ScanResult(active=(), archived=(), findings=tuple(findings))
 
     allowed_task_root_entries = {"active", "archived"}
-    for task_root_entry in sorted(task_root.iterdir()):
+    for task_root_entry in sorted(task_root.iterdir()) if task_root.exists() else ():
         if task_root_entry.name not in allowed_task_root_entries:
             findings.append(
                 RuntimeFinding(
@@ -1688,7 +1812,7 @@ def scan_tasks(root: Path) -> ScanResult:
             )
 
     valid_active_paths: list[Path] = []
-    for active_entry in sorted(active_root.iterdir()):
+    for active_entry in sorted(active_root.iterdir()) if active_root.exists() else ():
         if active_entry.is_symlink() or not active_entry.is_file() or active_entry.suffix != ".md":
             findings.append(
                 RuntimeFinding(
@@ -1732,7 +1856,7 @@ def scan_tasks(root: Path) -> ScanResult:
                 )
 
     valid_archived_paths: list[Path] = []
-    for archived_entry in sorted(archived_root.iterdir()):
+    for archived_entry in sorted(archived_root.iterdir()) if archived_root.exists() else ():
         if (
             archived_entry.is_symlink()
             or not archived_entry.is_file()
@@ -1768,7 +1892,6 @@ def scan_tasks(root: Path) -> ScanResult:
         daily_archive_paths.setdefault((archive_date, daily_sequence), []).append(
             archived_path
         )
-        daily_archive_sequences.setdefault(archive_date, []).append(daily_sequence)
 
     for duplicate_slug in sorted(active_slugs.intersection(archived_slugs)):
         findings.append(
@@ -1799,25 +1922,123 @@ def scan_tasks(root: Path) -> ScanResult:
                     path=sequence_paths[0].parent.relative_to(resolved_root).as_posix(),
                 )
             )
-    for archive_date, daily_sequences in sorted(daily_archive_sequences.items()):
-        sorted_sequences = sorted(set(daily_sequences))
-        expected_sequences = list(range(1, len(sorted_sequences) + 1))
-        if sorted_sequences != expected_sequences:
-            findings.append(
-                RuntimeFinding(
-                    code="noncontiguous-daily-archive-sequence",
-                    message=(
-                        f"Archive date {archive_date} must use contiguous daily sequences "
-                        "starting at 001"
-                    ),
-                    path=archived_root.relative_to(resolved_root).as_posix(),
-                )
-            )
     return ScanResult(
         active=tuple(active_tasks),
         archived=tuple(archived_tasks),
         findings=tuple(findings),
     )
+
+
+def issue_identity(path: str, root: Path | None = None) -> tuple[str, str | None, str] | None:
+    document = Path(path)
+    if document.is_absolute() and root is not None:
+        try:
+            path = document.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            return None
+    match = re.fullmatch(
+        r"codestable/(?:epics/(?:done/)?(?P<epic>\d{3,})-[ox]-(?P<epic_slug>[^/]+)/)?"
+        r"issues/(?:done/)?(?P<issue>\d{3,})-[ox]-(?P<slug>[^/]+?)(?:\.md|/index\.md)",
+        path.removeprefix("./"),
+    )
+    if match is None:
+        return None
+    epic_tree = f"{match['epic']}-{match['epic_slug']}" if match["epic"] else None
+    return match["issue"], epic_tree, match["slug"].removeprefix("ff-")
+
+
+def task_issue_paths(
+    frontmatter: dict[str, object], root: Path | None = None,
+) -> dict[tuple[str, str | None, str], str]:
+    primary_issue = frontmatter.get(PRIMARY_ISSUE_FIELD)
+    docs = [primary_issue] if isinstance(primary_issue, str) else frontmatter["related_docs"]
+    issues = {}
+    for path in docs:
+        identity = issue_identity(path, root)
+        if identity is not None:
+            document = Path(path)
+            issues[identity] = (
+                document.resolve().relative_to(root.resolve()).as_posix()
+                if document.is_absolute() and root is not None else path
+            )
+    return issues
+
+
+def resolve_create_issue(
+    root: Path, primary_issue: str | None, related_docs: Sequence[str],
+) -> str | None:
+    if primary_issue is not None:
+        return primary_issue
+    issues = task_issue_paths({"related_docs": related_docs}, root)
+    if not issues:
+        for related_doc in related_docs:
+            path = (root / related_doc).resolve()
+            if not path.is_relative_to(root.resolve() / "codestable/spec") or not path.is_file():
+                continue
+            match = FRONTMATTER_PATTERN.match(path.read_text(encoding="utf-8"))
+            if not match or not re.search(r"(?m)^doc_type: project-spec[ \t]*$", match["body"]):
+                continue
+            origin = re.search(r"(?m)^implemented_by: \[(\d{3,})\][ \t]*$", match["body"])
+            if origin is None:
+                continue
+            candidates = sorted((root / "codestable/issues").glob(f"{origin[1]}-o-*.md"))
+            if len(candidates) == 1:
+                relative_issue = candidates[0].relative_to(root).as_posix()
+                issues.update(task_issue_paths({"related_docs": [relative_issue]}))
+    if len(issues) > 1:
+        raise TaskRuntimeError("Multiple related Issues; identify the primary Issue with --issue")
+    return next(iter(issues.values()), None)
+
+
+def scan_issue_tasks(root: Path, result: ScanResult, issue: str) -> dict[str, object]:
+    identity = issue_identity(issue)
+    if identity is None:
+        raise TaskRuntimeError("Expected a repository-relative CodeStable Issue document path")
+
+    active = []
+    archived = []
+    bound_archives = []
+    eligible_active = []
+    eligible_archives = []
+    summaries = [(summary, False) for summary in result.active]
+    summaries.extend((summary, True) for summary in result.archived)
+    for summary, is_archived in summaries:
+        content = (root / summary.path).read_text(encoding="utf-8")
+        frontmatter = parse_frontmatter(content)
+        issues = task_issue_paths(frontmatter, root)
+        if identity not in issues:
+            continue
+        (archived if is_archived else active).append(summary)
+        if len(issues) != 1:
+            continue
+        if is_archived:
+            finished = archived_task_can_continue(content)
+            if PRIMARY_ISSUE_FIELD in frontmatter:
+                bound_archives.append((str(frontmatter["updated"]), summary.path, summary, finished))
+            if finished:
+                eligible_archives.append(summary)
+        else:
+            eligible_active.append(summary)
+
+    primary = None
+    if len(active) == len(eligible_active) == 1:
+        primary = active[0]
+    if not active:
+        if bound_archives:
+            _, _, latest, finished = max(bound_archives, key=lambda entry: entry[:2])
+            if finished:
+                primary = latest
+        elif eligible_archives:
+            primary = eligible_archives[0]
+    findings = [finding for finding in result.findings if finding.code != "missing-task-workspace"]
+    if findings:
+        primary = None
+    return {
+        "primary": asdict(primary) if primary else None,
+        "active": [asdict(summary) for summary in active],
+        "archived": [asdict(summary) for summary in archived],
+        "findings": [asdict(finding) for finding in findings],
+    }
 
 
 def print_json(value: object) -> None:
@@ -1831,13 +2052,15 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--root", default=".", help="Repository root.")
     command_parsers = parser.add_subparsers(dest="command", required=True)
 
-    command_parsers.add_parser("scan", help="List active and archived Tasks.")
+    scan_parser = command_parsers.add_parser("scan", help="List active and archived Tasks.")
+    scan_parser.add_argument("--issue", help="Show the main Task and history for an Issue path.")
 
     create_parser = command_parsers.add_parser("create", help="Create an active Task.")
     create_parser.add_argument("--task", required=True)
     create_parser.add_argument("--goal", required=True)
     create_parser.add_argument("--workflow", required=True)
     create_parser.add_argument("--owner", default="cs")
+    create_parser.add_argument("--issue", help="Primary Issue path used to prevent duplicate Tasks.")
     create_parser.add_argument("--step", action="append", default=[])
     create_parser.add_argument(
         "--related-doc",
@@ -1846,6 +2069,14 @@ def build_argument_parser() -> argparse.ArgumentParser:
         help="Existing business context or evidence prepared before this Task.",
     )
     create_parser.add_argument("--date")
+
+    continue_parser = command_parsers.add_parser("continue", help="Move an archived Task to active and append work.")
+    continue_parser.add_argument("--task", required=True)
+    continue_parser.add_argument("--expected-sha256", required=True)
+    continue_parser.add_argument("--step", action="append", required=True)
+    continue_parser.add_argument("--record", required=True)
+    continue_parser.add_argument("--related-doc", action="append", default=[])
+    continue_parser.add_argument("--date")
 
     write_parser = command_parsers.add_parser("write-active", help="CAS-update an active Task.")
     write_parser.add_argument("--task", required=True)
@@ -1897,23 +2128,52 @@ def main() -> int:
     try:
         if arguments.command == "scan":
             scan_result = scan_tasks(root)
+            if arguments.issue is not None:
+                result = scan_issue_tasks(root, scan_result, arguments.issue)
+                print_json(result)
+                return 1 if result["findings"] else 0
             print_json(scan_result)
             return 1 if scan_result.findings else 0
-        elif arguments.command == "create":
-            created_path = create_task(
-                root=root,
-                task=arguments.task,
-                goal=arguments.goal,
-                workflow=arguments.workflow,
-                owner=arguments.owner,
-                steps=arguments.step,
-                related_docs=arguments.related_doc,
-                current_date=arguments.date,
-            )
+        elif arguments.command in {"create", "continue"}:
+            if arguments.command == "create":
+                primary_issue = resolve_create_issue(root, arguments.issue, arguments.related_doc)
+                if primary_issue is not None:
+                    result = scan_issue_tasks(root, scan_tasks(root), primary_issue)
+                    if result["findings"]:
+                        raise TaskRuntimeError("Resolve Task scan findings before creating an Issue Task")
+                    if result["primary"] or result["active"]:
+                        existing = result["primary"]
+                        detail = f": {existing['path']}" if existing else ""
+                        raise TaskRuntimeError(
+                            f"Issue already has a Task{detail}; run scan --issue to resume it"
+                        )
+                    if primary_issue not in arguments.related_doc:
+                        arguments.related_doc.append(primary_issue)
+                task_path = create_task(
+                    root=root,
+                    task=arguments.task,
+                    goal=arguments.goal,
+                    workflow=arguments.workflow,
+                    owner=arguments.owner,
+                    steps=arguments.step,
+                    related_docs=arguments.related_doc,
+                    current_date=arguments.date,
+                    primary_issue=primary_issue,
+                )
+            else:
+                task_path = continue_task(
+                    root=root,
+                    task=arguments.task,
+                    expected_sha256=arguments.expected_sha256,
+                    steps=arguments.step,
+                    progress_record=arguments.record,
+                    related_docs=arguments.related_doc,
+                    current_date=arguments.date,
+                )
             print_json(
                 {
-                    "status": "created",
-                    "path": created_path.relative_to(root.resolve()).as_posix(),
+                    "status": "created" if arguments.command == "create" else "continued",
+                    "path": task_path.relative_to(root.resolve()).as_posix(),
                     "plan_committed": True,
                     "execution_mode": "unattended",
                     "ordinary_questions_allowed": False,

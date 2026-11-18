@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 RUNTIME_PATH = (
@@ -116,6 +117,262 @@ class TaskRuntimeTests(unittest.TestCase):
             expected_sha256=task_runtime.calculate_sha256(active_path),
             current_date="2026-07-29",
         )
+
+    def test_continue_moves_archive_to_active_until_completed(self) -> None:
+        issue_path = "codestable/issues/066-o-efts-report.md"
+        other_issue = "codestable/issues/067-o-export.md"
+        task_runtime.create_task(
+            self.root, "efts-report", "EFTS", "feature", "cs",
+            ["Inspect current behavior", "Implement and verify"], [issue_path], "2026-07-29",
+        )
+        active_path = self.complete_task("efts-report")
+        original = task_runtime.archive_task(
+            self.root, "efts-report", "2026-07-29", task_runtime.calculate_sha256(active_path)
+        )
+        archived_path = self.root / original.archived_path
+        old_archive = archived_path.read_bytes().replace(
+            b"doc_type: task-list", b'doc_type: "task-list"', 1
+        )
+        old_archive = old_archive.replace(f"primary_issue: {issue_path}\n".encode(), b"", 1)
+        old_archive = old_archive.replace(b"\n", b"\r\n")
+        archived_path.write_bytes(old_archive)
+        continued = subprocess.run(
+            [
+                sys.executable, str(RUNTIME_PATH), "--root", str(self.root),
+                "continue", "--task", "efts-report",
+                "--expected-sha256", task_runtime.calculate_sha256(archived_path),
+                "--step", "Verify the new reporting rules", "--record", "Extend EFTS",
+                "--date", "2026-07-30", "--related-doc", other_issue,
+            ],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(continued.returncode, 0, continued.stdout + continued.stderr)
+        self.assertTrue(active_path.is_file())
+        self.assertFalse(archived_path.exists())
+        scan = task_runtime.scan_tasks(self.root)
+        self.assertFalse(scan.findings)
+        self.assertFalse(scan.archived)
+        self.assertEqual(task_runtime.scan_issue_tasks(self.root, scan, issue_path)["primary"]["task"],
+                         "efts-report")
+        self.assertFalse(task_runtime.scan_issue_tasks(self.root, scan, other_issue)["active"])
+        with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "must be completed"):
+            task_runtime.archive_task(
+                self.root, "efts-report", "2026-07-30", task_runtime.calculate_sha256(active_path),
+            )
+        self.assertFalse(archived_path.exists())
+        task_runtime.update_task(
+            self.root, "efts-report", task_runtime.calculate_sha256(active_path),
+            {
+                "- [ ] Verify the new reporting rules": "- [x] Verify the new reporting rules",
+                "### 3. Verify the new reporting rules\n\n- 状态：pending": (
+                    "### 3. Verify the new reporting rules\n\n- 状态：done"
+                ),
+            }, "Verified new reporting rules", "2026-07-30",
+        )
+        task_runtime.complete_task(
+            self.root, "efts-report", task_runtime.calculate_sha256(active_path), "2026-07-30",
+        )
+        source_hash = task_runtime.calculate_sha256(active_path)
+        result = task_runtime.archive_task(self.root, "efts-report", "2026-07-30", source_hash)
+        self.assertEqual(result.archived_path, "codestable/tasks/archived/2026-07-30-001-efts-report.md")
+        self.assertEqual(
+            task_runtime.archive_task(self.root, "efts-report", "2026-07-30", source_hash),
+            result,
+        )
+        self.assertFalse(active_path.exists())
+        self.assertFalse(archived_path.exists())
+        self.assertFalse(task_runtime.scan_tasks(self.root).findings)
+        content = (self.root / result.archived_path).read_text(encoding="utf-8")
+        self.assertIn("- [x] Inspect current behavior", content)
+        self.assertIn("- [x] Verify the new reporting rules", content)
+        self.assertIn("updated: 2026-07-30", content)
+        self.assertIn("Extend EFTS", content)
+
+    def test_retry_continuation_finishes_interrupted_move_without_appending_twice(self) -> None:
+        active = self.create_task("interrupted-continuation")
+        self.complete_task("interrupted-continuation")
+        result = task_runtime.archive_task(
+            self.root, active.stem, "2026-07-29", task_runtime.calculate_sha256(active),
+        )
+        archived = self.root / result.archived_path
+        original_archive = archived.read_bytes()
+        args = (self.root, active.stem, task_runtime.calculate_sha256(archived),
+                ["Review the follow-up"], "Follow-up requested", [], "2026-07-30")
+        with mock.patch.object(task_runtime, "unlink_file_if_snapshot_is_current", return_value=False):
+            with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "move completed"):
+                task_runtime.continue_task(*args)
+        self.assertEqual(archived.read_bytes(), original_archive)
+        candidate = active.read_bytes()
+        self.assertIn("duplicate-task-state", {finding.code for finding in task_runtime.scan_tasks(self.root).findings})
+        with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "both active and archived"):
+            self.finish_all_steps(active.stem)
+        self.assertEqual(task_runtime.continue_task(*args[:-1]), active)
+        self.assertEqual(active.read_bytes(), candidate)
+        self.assertFalse(archived.exists())
+        self.assertFalse(task_runtime.scan_tasks(self.root).findings)
+
+    def test_continuation_preserves_archive_if_active_publication_changes(self) -> None:
+        active = self.create_task("changed-continuation")
+        self.complete_task(active.stem)
+        result = task_runtime.archive_task(
+            self.root, active.stem, "2026-07-29", task_runtime.calculate_sha256(active),
+        )
+        archived = self.root / result.archived_path
+        original_archive = archived.read_bytes()
+        publish = task_runtime.atomic_create_text
+
+        def publish_then_change(path: Path, content: str) -> None:
+            publish(path, content + "\nExternal edit.\n")
+
+        with mock.patch.object(task_runtime, "atomic_create_text", side_effect=publish_then_change):
+            with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "preserve archived evidence"):
+                task_runtime.continue_task(
+                    self.root, active.stem, task_runtime.calculate_sha256(archived),
+                    ["Review the follow-up"], "Follow-up requested", [], "2026-07-30",
+                )
+        self.assertEqual(archived.read_bytes(), original_archive)
+        self.assertIn("External edit.", active.read_text(encoding="utf-8"))
+
+    def test_create_rejects_duplicate_issue_inferred_from_related_doc(self) -> None:
+        issue = "codestable/issues/066-o-efts-report.md"
+        main = task_runtime.create_task(
+            self.root, "efts-report", "EFTS", "feature", "cs",
+            ["Inspect current behavior", "Implement and verify"], [issue], "2026-07-29",
+        )
+        cmd = [sys.executable, str(RUNTIME_PATH), "--root", str(self.root), "create",
+               "--task", "another-efts-round", "--goal", "Change one column", "--workflow", "fast",
+               "--step", "Inspect changes", "--related-doc", "codestable/issues/done/066-x-efts-report.md",
+               "--related-doc", "codestable/spec/efts-report.md"]
+        issue_file = self.root / issue
+        issue_file.parent.mkdir(parents=True)
+        issue_file.touch()
+        spec = self.root / "codestable/spec/efts-report.md"
+        spec.parent.mkdir()
+        spec.write_text("---\ndoc_type: project-spec\nimplemented_by: [066]\n---\n",
+                        encoding="utf-8")
+        for status in ("active", "archived"):
+            issue_arg = "codestable/issues/done/066-x-efts-report.md"
+            for path in (issue_arg, str(self.root / issue_arg), None):
+                with self.subTest(status=status, path=path):
+                    call = (
+                        [arg if arg != issue_arg else path for arg in cmd]
+                        if path else cmd[:-4] + cmd[-2:]
+                    )
+                    duplicate = subprocess.run(call, capture_output=True, text=True, check=False)
+                    self.assertEqual(duplicate.returncode, 1, duplicate.stdout + duplicate.stderr)
+                    self.assertIn("Issue already has a Task", duplicate.stdout)
+                    self.assertFalse(main.with_name("another-efts-round.md").exists())
+            if status == "active":
+                self.complete_task(main.stem)
+                task_runtime.archive_task(
+                    self.root, main.stem, "2026-07-29", task_runtime.calculate_sha256(main),
+                )
+
+    def test_scan_issue_finds_main_and_history_without_crossing_issue_trees(self) -> None:
+        issue_path = "codestable/issues/066-o-efts-report.md"
+        for slug, related_doc in (
+            ("design-efts", issue_path),
+            ("revise-efts", "codestable/issues/done/066-x-efts-report.md"),
+            ("other-efts", "codestable/epics/001-o-test/issues/066-o-efts-report.md"),
+        ):
+            active_path = task_runtime.create_task(
+                self.root, slug, "EFTS", "feature", "cs",
+                ["Inspect current behavior", "Implement and verify"], [related_doc],
+                "2026-07-29",
+            )
+            self.complete_task(slug)
+            result = task_runtime.archive_task(
+                self.root, slug, "2026-07-29", task_runtime.calculate_sha256(active_path),
+            )
+            archive_path = self.root / result.archived_path
+            content = archive_path.read_text(encoding="utf-8")
+            archive_path.write_text(
+                content.replace(f"primary_issue: {related_doc}\n", "", 1), encoding="utf-8"
+            )
+        (self.root / "codestable/tasks/active").rmdir()
+        scan_command = [sys.executable, str(RUNTIME_PATH), "--root", str(self.root), "scan", "--issue"]
+        scan = subprocess.run(
+            [*scan_command, issue_path],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(scan.returncode, 0, scan.stdout + scan.stderr)
+        result = json.loads(scan.stdout)
+        self.assertEqual(result["primary"]["task"], "design-efts")
+        self.assertEqual([task["task"] for task in result["archived"]],
+                         ["design-efts", "revise-efts"])
+        duplicate = subprocess.run(
+            [sys.executable, str(RUNTIME_PATH), "--root", str(self.root), "create",
+             "--task", "another-efts-round", "--goal", "Revise EFTS", "--workflow", "feature",
+             "--step", "Inspect changes", "--issue", issue_path],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(duplicate.returncode, 1, duplicate.stdout + duplicate.stderr)
+        self.assertIn("Issue already has a Task", duplicate.stdout)
+        self.assertFalse(task_runtime.scan_tasks(self.root).active)
+
+        active_path = task_runtime.create_task(
+            self.root, "implement-efts", "Implement EFTS", "feature", "cs",
+            ["Inspect current behavior", "Implement and verify"], [issue_path],
+            "2026-07-29",
+        )
+        active_scan = task_runtime.scan_issue_tasks(self.root, task_runtime.scan_tasks(self.root), issue_path)
+        self.assertEqual(active_scan["primary"]["task"], "implement-efts")
+        self.complete_task("implement-efts")
+        task_runtime.archive_task(
+            self.root, "implement-efts", "2026-07-30", task_runtime.calculate_sha256(active_path),
+        )
+        archived_scan = task_runtime.scan_issue_tasks(
+            self.root, task_runtime.scan_tasks(self.root), issue_path,
+        )
+        self.assertEqual(archived_scan["primary"]["task"], "implement-efts")
+
+        other_issue = "codestable/issues/067-o-export.md"
+        task_runtime.create_task(
+            self.root, "change-export", "Change export", "feature", "cs",
+            ["Inspect export"], [other_issue, issue_path], "2026-07-30", primary_issue=other_issue,
+        )
+        isolated_scan = task_runtime.scan_issue_tasks(
+            self.root, task_runtime.scan_tasks(self.root), issue_path,
+        )
+        self.assertEqual(isolated_scan["primary"]["task"], "implement-efts")
+        self.assertFalse(isolated_scan["active"])
+
+    def test_cancelled_continuation_allows_replacement_despite_prior_issue_history(self) -> None:
+        issue_path = "codestable/issues/066-o-efts-report.md"
+        for slug in ("old-efts", "main-efts"):
+            active = task_runtime.create_task(
+                self.root, slug, "EFTS", "feature", "cs",
+                ["Inspect current behavior", "Implement and verify"], [issue_path],
+                "2026-07-29",
+            )
+            self.complete_task(slug)
+            archive = task_runtime.archive_task(
+                self.root, slug, "2026-07-29", task_runtime.calculate_sha256(active),
+            )
+        archived = self.root / archive.archived_path
+        task_runtime.continue_task(
+            self.root, "main-efts", task_runtime.calculate_sha256(archived),
+            ["Verify revised output"], "Add verification", [], "2026-07-30",
+        )
+        task_runtime.set_task_status(
+            self.root, "main-efts", "cancelled", task_runtime.calculate_sha256(active),
+            "Replaced by replacement-efts", "2026-07-30",
+        )
+        task_runtime.archive_task(
+            self.root, "main-efts", "2026-07-30", task_runtime.calculate_sha256(active),
+        )
+        result = task_runtime.scan_issue_tasks(
+            self.root, task_runtime.scan_tasks(self.root), issue_path,
+        )
+        self.assertIsNone(result["primary"])
+        self.assertEqual(len(result["archived"]), 2)
+        replacement = subprocess.run(
+            [sys.executable, str(RUNTIME_PATH), "--root", str(self.root), "create",
+             "--task", "replacement-efts", "--goal", "Replace the EFTS plan",
+             "--workflow", "feature", "--step", "Verify replacement", "--issue", issue_path],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(replacement.returncode, 0, replacement.stdout + replacement.stderr)
 
     def test_create_task_writes_only_active_and_archived_workspace_directories(self) -> None:
         active_path = self.create_task("traceable-change")
@@ -767,7 +1024,7 @@ class TaskRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "cannot infer completion order"):
             task_runtime.migrate_legacy_archive_filenames(self.root)
 
-    def test_scan_reports_duplicate_and_noncontiguous_daily_sequences(self) -> None:
+    def test_scan_reports_duplicate_but_allows_gaps_in_daily_sequences(self) -> None:
         first_active_path = self.create_task("duplicate-sequence-a")
         self.complete_task("duplicate-sequence-a")
         first_result = task_runtime.archive_task(
@@ -801,28 +1058,30 @@ class TaskRuntimeTests(unittest.TestCase):
             first_archived_path.with_name("2026-07-29-003-duplicate-sequence-a.md")
         )
         noncontiguous_scan_result = task_runtime.scan_tasks(self.root)
-        self.assertIn(
-            "noncontiguous-daily-archive-sequence",
-            {finding.code for finding in noncontiguous_scan_result.findings},
-        )
+        self.assertFalse(noncontiguous_scan_result.findings)
 
-    def test_archive_rejects_a_noncontiguous_daily_sequence_workspace(self) -> None:
-        active_path = self.create_task("blocked-by-sequence-gap")
-        self.complete_task("blocked-by-sequence-gap")
-        archived_root = self.root / "codestable/tasks/archived"
-        archived_root.mkdir(parents=True, exist_ok=True)
-        (archived_root / "2026-07-29-002-existing-task.md").write_text(
-            "reserved archive evidence",
-            encoding="utf-8",
-        )
-
-        with self.assertRaisesRegex(task_runtime.TaskRuntimeError, "contiguous sequences"):
-            task_runtime.archive_task(
-                root=self.root,
-                task="blocked-by-sequence-gap",
-                archive_date="2026-07-29",
-                expected_sha256=task_runtime.calculate_sha256(active_path),
+    def test_archive_allocates_after_the_highest_remaining_sequence(self) -> None:
+        for task in ("reopened", "still-archived"):
+            self.create_task(task)
+            active = self.complete_task(task)
+            result = task_runtime.archive_task(
+                self.root, task, "2026-07-29", task_runtime.calculate_sha256(active),
             )
+            if task == "reopened":
+                old_archive = self.root / result.archived_path
+        task_runtime.continue_task(
+            self.root, "reopened", task_runtime.calculate_sha256(old_archive),
+            ["Review the follow-up"], "Follow-up requested", [], "2026-07-29",
+        )
+        self.assertFalse(old_archive.exists())
+        self.assertFalse(task_runtime.scan_tasks(self.root).findings)
+
+        active = self.create_task("later-task")
+        self.complete_task(active.stem)
+        result = task_runtime.archive_task(
+            self.root, active.stem, "2026-07-29", task_runtime.calculate_sha256(active),
+        )
+        self.assertTrue(result.archived_path.endswith("/2026-07-29-003-later-task.md"))
 
     def test_archive_rejects_daily_sequence_overflow(self) -> None:
         archived_root = self.root / "codestable/tasks/archived"

@@ -114,11 +114,13 @@ CodeStable 的核心对象不是 Agent 编排，而是软件自身的状态、�
 
 文档按需准备，不为小改生成整套 Vision / Epic，Project Spec 也不能把未实现目标当当前事实；维护文档本身复用目标正本，不递归建 Issue。明确禁止业务文档或纯只读 Review 时按授权处理，但已确认 Issue 的 Task 不可省略。`completed` 只是待归档态；`codestable/tasks/archived/` 正本有效、active 同名文件不存在且扫描无冲突，只证明 Task 闭环，关联业务文档的最终回写完成后整个工作流才结束。
 
-归档文件名使用 `YYYY-MM-DD-NNN-{task}.md`。`NNN` 是同一归档日期下所有 Task 共享的三位顺序号，每天从 `001` 重新开始，并按实际归档顺序递增。
+同一修改目标复用主 Task，包括跨轮确认、设计转实现与后续修订。有业务 Issue 时用 `scan --issue {issue-path}` 找到主 Task 并集中查看旧归档。创建时即使只通过 `--related-doc` 关联唯一 Issue，runtime 也会检查同一 Issue 的现有 Task。无业务 Issue 时沿用当前会话同一目标的 slug。主 Task 已归档时，用 `continue` 将正本移回 `active/` 并追加工作。完成并验证后，按本轮归档日期重新归档。
+
+归档文件名使用 `YYYY-MM-DD-NNN-{task}.md`，日期取本轮归档日。`NNN` 取当天现存归档的最大序号加一，首份从 `001` 开始。移回 active 后留下的空号可以保留。
 
 升级前若已有 `YYYY-MM-DD-{task}.md`，运行 `python3 <cs-skill>/scripts/codestable_task_runtime.py --root . migrate-archive-filenames`。同一天只有一个旧归档时可自动迁移；同一天存在多个旧归档时，runtime 不猜测历史顺序，须按已知完成顺序人工补齐序号。
 
-Lite runtime 只允许 `tasks/active/` 与 `tasks/archived/`：create 和 archive 都用不覆盖已有证据的独占发布，scan 会把额外目录、非规范文件和 symlink 视为失败；archive 记录源快照 hash，因此成功响应丢失后可安全重放原命令。若归档后 active 路径被重建，archive 或 cleanup 只会在其内容与唯一有效 archive 正本或该正本记录的源快照完全一致时清除残留；若内容不同，则保留双方证据并 fail closed。
+Lite runtime 只允许 `tasks/active/` 与 `tasks/archived/`：create 和 archive 使用独占发布。`continue` 核对原档快照并发布 active 正本，确认后移除旧档。scan 会把额外目录、非规范文件和 symlink 视为失败；archive 记录源快照 hash，因此成功响应丢失后可安全重放原命令。若归档后 active 路径被重建，archive 或 cleanup 只会在其内容与唯一有效 archive 正本或该正本记录的源快照完全一致时清除残留；若内容不同，则保留双方证据并 fail closed。
 
 计划确定前可以通过结构化问题澄清目标、边界与授权，结论先写入相关文档再创建 Task。计划写入 Task 后进入无人值守：Agent 不询问普通推进，只在缺口会改变目标、正确性或权限且无法查证时提问；按契约一致性、风险、可逆性、证据强度和总成本自动选择推荐方向，处理失败，并持续到全部计划、验证、Task 归档与归档后的业务回写完成。用户中途纠正优先于旧计划；宿主能力需按实际工具 schema 核对，不能从模型名称推导。
 

@@ -34,7 +34,7 @@ CodeStable 是一套理解和推进软件演化的方法。它用 Vision、Proje
 
 1. 分析讨论并形成结论：有界读取相关现状与历史，明确目标、范围、方案和验证方式；缺关键输入时用 AskQuestion 澄清，不先建空壳 Task；
 2. 创建或更新相关 Issue / Spec 等前置文档：复用已有正本，常规 Issue 或快改 `ff` 先写目标、范围和验证依据；Project Spec 只写当前事实，未实现目标留在 Issue / Epic；
-3. 前置文档就绪后，扫描 `codestable/tasks/active/` 与 `archived/`，创建或恢复 Task，关联已有依据并同步 Agent 原生 Tasks；
+3. 前置文档就绪后，按业务 Issue 或会话中的同一修改目标扫描 active 与 archived，优先续写主 Task，只有新目标才创建 Task，之后同步 Agent 原生 Tasks；
 4. 实施修改或交付；每个可观察批次完成后，先用 SHA-256 陈旧快照保护更新 Task，再继续下一批；
 5. 测试与必要 Review；失败回到修改、更新 Task 和复测，验证通过后准备 [自动回写与沉淀](references/retention.md) 的结论、目标位置与授权判断；
 6. 执行与验证全部完成后把 Task 标记 completed，立即原子归档并 cleanup / scan；
@@ -253,8 +253,8 @@ Talk 写入 `codestable/talks/`；Note 写入 `codestable/notes/`，同主题更
 2. **按权重深读**：`spec/`（最高）→ 相关 epic / notes → issues（含 `-x-`、`ff`、`done/`）→ 按需 talks/vision/tools。
 3. **现状够用吗**：一句话触发→结果？不够 → 现状说明；跨多边界/要复用 → 明确 Explore 调查目标与停止条件。
 4. **管理强度与结论**：收束范围、方案和验证方式；与代码冲突时先核对证据，不静默覆盖已记录取舍或盲信过期文档。
-5. **前置业务文档**：创建或更新相关 Issue / `ff` / Spec 等正本，保存本轮结论；管理强度决定文档厚度，不颠倒先后顺序。
-6. **Task gate**：前置依据就绪后直接扫描文件系统；恢复匹配 active Task，或用 runtime 创建新 Task，关联依据并同步 Agent 原生 Tasks，之后才实施。
+5. **前置业务文档**：先从当前对话与业务依据判断是否延续同一目标。优先更新原 Issue / `ff` / Spec，独立目标按需新建，保存本轮结论；管理强度决定文档厚度，不颠倒先后顺序。
+6. **Task gate**：按 [Task 恢复规则](references/task.md#7-恢复与冲突) 找到主 Task。有业务 Issue 时运行 `scan --issue`。无业务 Issue 时从当前对话恢复同一目标已用的 slug。补充需求、纠错、设计转实现、Review 修订和收尾都先检查能否承接原目标。active 主 Task 直接更新，已归档主 Task 用 `continue` 移回 active 并追加，只有新目标才创建 Task。同步原生 Tasks 后再实施。
 
 有目标 Issue 时，确认正在处理的是其**当前版本**；在 Epic 下工作时，读取该 Epic 的 `spec.md`。
 
